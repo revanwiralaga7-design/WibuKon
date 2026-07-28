@@ -3,7 +3,7 @@
 <head>
     <%- include('layout/head') %>
 </head>
-<body class="bg-[#000] flex flex-col h-screen overflow-hidden">
+<body class="bg-[#000] flex flex-col min-h-screen lg:h-screen lg:overflow-hidden">
     <header class="shrink-0 bg-[#0f0f12] border-b border-white/10 px-4 py-3 flex items-center justify-between z-20">
         <nav aria-label="Breadcrumb">
             <div class="flex items-center gap-4">
@@ -15,8 +15,8 @@
         </nav>
     </header>
 
-    <main class="flex-grow flex flex-col lg:flex-row overflow-hidden">
-        <article class="w-full lg:w-3/4 bg-black flex flex-col relative group shrink-0 overflow-y-auto custom-scroll">
+    <main class="flex-grow flex flex-col lg:flex-row lg:overflow-hidden">
+        <article class="w-full lg:w-3/4 bg-black flex flex-col relative shrink-0 lg:overflow-y-auto custom-scroll">
             <section class="relative w-full aspect-video bg-black shrink-0" aria-label="Video Player">
                 <% if (url) { %>
                     <iframe src="<%= url %>" class="absolute inset-0 w-full h-full" frameborder="0" allowfullscreen title="Video player for <%= anime.title %>"></iframe>
@@ -123,12 +123,12 @@
             </section>
         </article>
 
-        <aside class="w-full lg:w-1/4 bg-[#0b0c15] border-t lg:border-t-0 lg:border-l border-white/5 flex flex-col h-full min-h-0" aria-label="Episode List">
+        <aside class="w-full lg:w-1/4 bg-[#0b0c15] border-t lg:border-t-0 lg:border-l border-white/5 flex flex-col lg:h-full min-h-0" aria-label="Episode List">
             <header class="p-3 md:p-4 border-b border-white/5 bg-[#0f0f12]">
                 <h3 class="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-wider">Daftar Episode</h3>
             </header>
             
-            <nav class="overflow-y-auto custom-scroll p-2 md:p-3 space-y-2 flex-grow" aria-label="Episodes">
+            <nav class="overflow-y-auto custom-scroll p-2 md:p-3 space-y-2 lg:flex-grow" aria-label="Episodes">
                 <% anime.episodes.forEach(eps => { %>
                     <a href="/watch/<%= anime.slug %>/<%= eps.slug %>" 
                        class="flex items-center gap-3 p-3 rounded-lg transition-all group <%= currentEps === eps.id ? 'bg-purple-600/10 border border-purple-500/50' : 'bg-slate-800/40 border border-transparent hover:bg-slate-800' %>"
