@@ -45,12 +45,15 @@
                 var user = WibuLevel.getUser()
                 var box = document.getElementById('accountBox')
                 if (user) {
+                    var roleBadge = ''
+                    if (user.role === 'owner') roleBadge = '<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 shrink-0">👑 OWNER</span>'
+                    else if (user.role === 'admin') roleBadge = '<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40 shrink-0">🛡 ADMIN</span>'
                     box.innerHTML =
                         '<div class="glass-card rounded-2xl px-4 py-3 flex items-center justify-between gap-3 border-purple-500/20">' +
                             '<div class="flex items-center gap-3 min-w-0">' +
                                 '<div class="w-9 h-9 rounded-full bg-purple-600 flex items-center justify-center text-white font-black text-sm shrink-0">' + esc(user.username.charAt(0).toUpperCase()) + '</div>' +
                                 '<div class="min-w-0">' +
-                                    '<div class="text-sm font-bold text-white truncate">' + esc(user.username) + '</div>' +
+                                    '<div class="text-sm font-bold text-white truncate flex items-center gap-1.5">' + esc(user.username) + roleBadge + '</div>' +
                                     '<div class="text-[10px] text-zinc-500">EXP tersimpan di server</div>' +
                                 '</div>' +
                             '</div>' +

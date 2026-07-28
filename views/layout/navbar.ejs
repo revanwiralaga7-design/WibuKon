@@ -36,7 +36,7 @@
                 <% } else { %>
                     <span class="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-black"><%= authUser.username.charAt(0).toUpperCase() %></span>
                 <% } %>
-                <span class="text-xs font-bold text-zinc-300 max-w-[90px] truncate"><%= authUser.username %></span>
+                <span class="text-xs font-bold text-zinc-300 max-w-[90px] truncate flex items-center gap-1"><% if (authUser.role === 'owner') { %>👑<% } else if (authUser.role === 'admin') { %>🛡<% } %><%= authUser.username %></span>
             </a>
         <% } else { %>
             <a href="/login?next=/" class="text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-full transition">Masuk</a>
