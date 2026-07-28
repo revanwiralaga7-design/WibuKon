@@ -10,7 +10,7 @@ module.exports = (mobinime) => {
                 active: 'schedule'
             })
         } catch (error) {
-            res.render('error', { error: error.message })
+            res.status(500).render('error', { error: error.message })
         }
     })
 

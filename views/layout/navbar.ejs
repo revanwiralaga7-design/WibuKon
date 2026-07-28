@@ -4,37 +4,65 @@
         <div class="flex gap-6 text-sm font-medium text-zinc-400">
             <a href="/" class="hover:text-white transition <%= active === 'home' ? 'text-white' : '' %>">Beranda</a>
             <a href="/schedule" class="hover:text-white transition <%= active === 'schedule' ? 'text-white' : '' %>">Jadwal Rilis</a>
+            <a href="/bookmarks" class="hover:text-white transition <%= active === 'bookmarks' ? 'text-white' : '' %>">Tersimpan</a>
+            <a href="/level" class="hover:text-white transition <%= active === 'level' ? 'text-white' : '' %>">Level</a>
             <a href="/about" class="hover:text-white transition <%= active === 'about' ? 'text-white' : '' %>">Tentang</a>
         </div>
     </div>
     
-    <div class="relative group">
-        <form action="/search" id="desktopSearchForm" class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg class="w-4 h-4 text-zinc-500 group-focus-within:text-purple-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            </div>
-            <input type="text" name="q" id="desktopInput" autocomplete="off" placeholder="Cari Anime..." class="bg-zinc-800/50 rounded-full pl-10 pr-4 py-2 text-sm w-64 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:bg-zinc-800 transition text-white placeholder-zinc-500">
-        </form>
+    <div class="flex items-center gap-4">
+        <div class="relative group">
+            <form action="/search" id="desktopSearchForm" class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="w-4 h-4 text-zinc-500 group-focus-within:text-purple-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <input type="text" name="q" id="desktopInput" autocomplete="off" placeholder="Cari Anime..." class="bg-zinc-800/50 rounded-full pl-10 pr-4 py-2 text-sm w-64 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:bg-zinc-800 transition text-white placeholder-zinc-500">
+            </form>
 
-        <div id="desktopHistory" class="hidden absolute top-full right-0 mt-2 w-72 bg-[#0f0f11] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade">
-            <div class="px-4 py-2 border-b border-white/5 text-[10px] text-zinc-500 font-bold uppercase tracking-wider flex justify-between items-center">
-                <span>Riwayat</span>
-                <button onclick="clearAllHistory()" class="text-red-400 hover:text-red-300">Hapus Semua</button>
+            <div id="desktopHistory" class="hidden absolute top-full right-0 mt-2 w-72 bg-[#0f0f11] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade">
+                <div class="px-4 py-2 border-b border-white/5 text-[10px] text-zinc-500 font-bold uppercase tracking-wider flex justify-between items-center">
+                    <span>Riwayat</span>
+                    <button onclick="clearAllHistory()" class="text-red-400 hover:text-red-300">Hapus Semua</button>
+                </div>
+                <div id="desktopHistoryList" class="max-h-60 overflow-y-auto custom-scroll"></div>
             </div>
-            <div id="desktopHistoryList" class="max-h-60 overflow-y-auto custom-scroll"></div>
         </div>
+
+        <% if (typeof authUser !== 'undefined' && authUser) { %>
+            <a href="/level" class="flex items-center gap-2 bg-zinc-800/60 hover:bg-zinc-800 border border-white/10 rounded-full pl-1 pr-3 py-1 transition" title="Profil level">
+                <% if (authUser.avatar_url) { %>
+                    <img src="<%= authUser.avatar_url %>" alt="" class="w-7 h-7 rounded-full object-cover" referrerpolicy="no-referrer">
+                <% } else { %>
+                    <span class="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-black"><%= authUser.username.charAt(0).toUpperCase() %></span>
+                <% } %>
+                <span class="text-xs font-bold text-zinc-300 max-w-[90px] truncate"><%= authUser.username %></span>
+            </a>
+        <% } else { %>
+            <a href="/login?next=/" class="text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-full transition">Masuk</a>
+        <% } %>
     </div>
 </nav>
 
 <nav class="md:hidden fixed top-0 w-full z-50 glass px-4 py-3 flex justify-between items-center backdrop-blur-xl">
     <a href="/" class="text-xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">WibuKon</a>
-    <a href="/search?q=" onclick="event.preventDefault(); openMobileSearch();" class="p-2 bg-zinc-800/50 rounded-full text-zinc-400 active:scale-95 transition">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-    </a>
+    <div class="flex items-center gap-2">
+        <a href="/search?q=" onclick="event.preventDefault(); openMobileSearch();" class="p-2 bg-zinc-800/50 rounded-full text-zinc-400 active:scale-95 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </a>
+        <% if (typeof authUser !== 'undefined' && authUser) { %>
+            <a href="/level" class="w-8 h-8 rounded-full <%= authUser.avatar_url ? '' : 'bg-purple-600' %> flex items-center justify-center text-white text-xs font-black overflow-hidden">
+                <% if (authUser.avatar_url) { %><img src="<%= authUser.avatar_url %>" alt="" class="w-8 h-8 object-cover rounded-full" referrerpolicy="no-referrer"><% } else { %><%= authUser.username.charAt(0).toUpperCase() %><% } %>
+            </a>
+        <% } else { %>
+            <a href="/login?next=/" class="p-2 bg-purple-600/80 rounded-full text-white active:scale-95 transition" aria-label="Masuk">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            </a>
+        <% } %>
+    </div>
 </nav>
 
 <nav class="md:hidden fixed bottom-0 w-full z-50 bg-[#0f0f11]/95 backdrop-blur-xl border-t border-white/5 pb-safe">
-    <div class="grid grid-cols-4 h-16">
+    <div class="grid grid-cols-6 h-16">
         <a href="/" class="flex flex-col items-center justify-center gap-1 group <%= active === 'home' ? 'active-nav' : 'text-zinc-500' %>">
             <svg class="w-6 h-6 transition group-active:scale-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
             <span class="text-[10px] font-medium">Beranda</span>
@@ -46,6 +74,14 @@
         <a href="/search?q=" onclick="event.preventDefault(); openMobileSearch();" class="flex flex-col items-center justify-center gap-1 group <%= active === 'search' ? 'active-nav' : 'text-zinc-500' %>">
             <svg class="w-6 h-6 transition group-active:scale-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             <span class="text-[10px] font-medium">Cari</span>
+        </a>
+        <a href="/bookmarks" class="flex flex-col items-center justify-center gap-1 group <%= active === 'bookmarks' ? 'active-nav' : 'text-zinc-500' %>">
+            <svg class="w-6 h-6 transition group-active:scale-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+            <span class="text-[10px] font-medium">Simpan</span>
+        </a>
+        <a href="/level" class="flex flex-col items-center justify-center gap-1 group <%= active === 'level' ? 'active-nav' : 'text-zinc-500' %>">
+            <svg class="w-6 h-6 transition group-active:scale-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            <span class="text-[10px] font-medium">Level</span>
         </a>
         <a href="/about" class="flex flex-col items-center justify-center gap-1 group <%= active === 'about' ? 'active-nav' : 'text-zinc-500' %>">
             <svg class="w-6 h-6 transition group-active:scale-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -166,10 +202,12 @@
 
     document.getElementById('desktopSearchForm').addEventListener('submit', (e) => {
         saveToHistory(desktopInput.value)
+        if (window.WibuLevel) WibuLevel.grant('search')
     })
 
     document.getElementById('mobileSearchForm').addEventListener('submit', (e) => {
         saveToHistory(mobileInput.value)
+        if (window.WibuLevel) WibuLevel.grant('search')
     })
 
     document.addEventListener('DOMContentLoaded', renderHistory)

@@ -1,0 +1,22 @@
+<nav class="bg-[#0f0f11] border-b border-white/5 px-4 md:px-8 py-3 flex flex-wrap items-center gap-4 justify-between sticky top-0 z-40">
+    <div class="flex items-center gap-4 md:gap-6 flex-wrap">
+        <a href="/admin" class="text-lg font-black italic text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">WibuKon Admin</a>
+        <div class="flex gap-1 text-xs font-medium">
+            <a href="/admin" class="px-3 py-1.5 rounded-lg <%= section === 'dashboard' ? 'bg-purple-600 text-white' : 'text-zinc-400 hover:bg-white/5' %>">Dashboard</a>
+            <a href="/admin/users" class="px-3 py-1.5 rounded-lg <%= section === 'users' ? 'bg-purple-600 text-white' : 'text-zinc-400 hover:bg-white/5' %>">User</a>
+            <a href="/admin/content" class="px-3 py-1.5 rounded-lg <%= section === 'content' ? 'bg-purple-600 text-white' : 'text-zinc-400 hover:bg-white/5' %>">Konten</a>
+            <% if (admin && admin.role === 'owner') { %>
+                <a href="/admin/ranks" class="px-3 py-1.5 rounded-lg <%= section === 'ranks' ? 'bg-purple-600 text-white' : 'text-zinc-400 hover:bg-white/5' %>">Rank</a>
+                <a href="/admin/admins" class="px-3 py-1.5 rounded-lg <%= section === 'admins' ? 'bg-purple-600 text-white' : 'text-zinc-400 hover:bg-white/5' %>">Admin</a>
+            <% } %>
+        </div>
+    </div>
+    <div class="flex items-center gap-3">
+        <a href="/" target="_blank" class="text-xs text-zinc-500 hover:text-white transition">Lihat Situs ↗</a>
+        <span class="text-xs text-zinc-400">
+            <%= admin.username %>
+            <span class="ml-1 px-2 py-0.5 rounded-full text-[10px] font-black <%= admin.role === 'owner' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/40' : 'bg-purple-500/20 text-purple-300 border border-purple-500/40' %>"><%= admin.role.toUpperCase() %></span>
+        </span>
+        <a href="/admin/logout" class="text-xs text-red-400 hover:text-red-300">Keluar</a>
+    </div>
+</nav>

@@ -2,24 +2,45 @@ require('dotenv').config()
 const express = require('express')
 const path = require('path')
 const Mobinime = require('./lib/ServerData')
+const db = require('./lib/db')
+const migrate = require('./lib/migrate')
+const { attachUser } = require('./lib/authUtil')
 const setupRoutes = require('./routes')
+const authRoute = require('./routes/auth')
+const apiRoute = require('./routes/api')
+const adminRoute = require('./routes/admin')
 
 const app = express()
 const port = process.env.PORT || 3000
 const mobinime = new Mobinime()
 
+// Jalur DB penting di serverless: pastikan skema ada sebelum request
+// pertama yang menyentuh DB (memoized — hanya migrasi sekali per proses).
+app.use(async (req, res, next) => {
+    try { await migrate.ensureMigrated() } catch (e) { console.error('[WibuKon] migrasi gagal:', e.message) }
+    next()
+})
+
 app.use(express.static(path.join(__dirname, 'public')))
 app.set('view engine', 'ejs')
 app.set('views', path.join(__dirname, 'views'))
-app.use(express.static('public'))
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
+
+// req.authUser/res.locals.authUser untuk semua halaman
+app.use(attachUser)
+
+// Urutan penting: auth/api/admin SEBELUM rute publik (404 handler ada di dalamnya)
+app.use('/', authRoute)
+app.use('/api', apiRoute)
+app.use('/admin', adminRoute(mobinime))
 
 setupRoutes(app, mobinime)
 
 if (require.main === module) {
     app.listen(port, () => {
         console.log(`WibuKon running at http://localhost:${port}`)
+        if (!db.enabled()) console.log('[WibuKon] Mode tanpa database (DATABASE_URL kosong): fitur publik normal, akun/EXP/admin nonaktif.')
     })
 }
 

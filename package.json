@@ -4,7 +4,11 @@
   "description": "Web streaming anime dengan Express dan Tailwind",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "keywords": [
     "anime",
@@ -18,7 +22,11 @@
     "axios": "^1.13.2",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
-    "dotenv": "16.4.5"
+    "dotenv": "16.4.5",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "pg-mem": "^3.0.5"
   }
 }
 

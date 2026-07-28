@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="560" viewBox="0 0 400 560">
+  <rect width="400" height="560" fill="#18181b"/>
+  <g fill="none" stroke="#3f3f46" stroke-width="2">
+    <circle cx="200" cy="255" r="52" fill="#27272a"/>
+    <path d="M188 231l40 24-40 24z" fill="#8b5cf6" stroke="none"/>
+  </g>
+  <text x="200" y="345" font-family="system-ui, sans-serif" font-size="24" font-weight="bold" fill="#52525b" text-anchor="middle">WibuKon</text>
+  <text x="200" y="372" font-family="system-ui, sans-serif" font-size="13" fill="#3f3f46" text-anchor="middle">Gambar tidak tersedia</text>
+</svg>

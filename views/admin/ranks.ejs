@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('_head', { title: 'Konfigurasi Rank' }) %>
+</head>
+<body>
+    <%- include('_nav', { admin, section }) %>
+
+    <main class="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
+        <div>
+            <h1 class="text-xl md:text-2xl font-black text-white">Konfigurasi Rank & Event EXP</h1>
+            <p class="text-xs text-zinc-500 mt-1">Disimpan ke database — berlaku untuk user login (server) & tamu (konfig ikut dikirim ke browser). Rumus tetap: <b>EXP/level = 100 × nomor rank</b>, level maks = <code>min</code> rank terakhir.</p>
+        </div>
+
+        <% if (flash && flash.ok) { %><div class="flash-ok"><%= flash.ok %></div><% } %>
+        <% if (flash && flash.err) { %><div class="flash-err"><%= flash.err %></div><% } %>
+
+        <form method="POST" action="/admin/ranks" class="space-y-6" onsubmit="return checkJson()">
+            <section class="card rounded-2xl p-5">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="font-bold text-white">Daftar Rank (JSON)</h2>
+                    <span class="text-[10px] text-zinc-600">min = level mulai, harus menaik & mulai dari 1</span>
+                </div>
+                <textarea id="ranksTa" name="ranks" rows="14" class="input font-mono !text-xs" spellcheck="false"><%= JSON.stringify(cfg.ranks, null, 2) %></textarea>
+            </section>
+
+            <section class="card rounded-2xl p-5">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="font-bold text-white">Event EXP (JSON)</h2>
+                    <span class="text-[10px] text-zinc-600">key: huruf kecil/angka/underscore · cap = batas/hari</span>
+                </div>
+                <textarea id="eventsTa" name="events" rows="10" class="input font-mono !text-xs" spellcheck="false"><%= JSON.stringify(cfg.events, null, 2) %></textarea>
+                <p class="text-[11px] text-zinc-600 mt-3">Event baru tidak otomatis muncul di UI — kode client juga perlu memanggil <code>WibuLevel.grant('key_event')</code>. Event bawaan: <code>daily_visit</code>, <code>watch</code>, <code>bookmark</code>, <code>search</code>.</p>
+            </section>
+
+            <div id="jsonErr" class="flash-err hidden"></div>
+            <button class="btn">💾 Simpan Konfigurasi</button>
+        </form>
+    </main>
+
+    <script>
+        function checkJson() {
+            var err = document.getElementById('jsonErr')
+            try {
+                JSON.parse(document.getElementById('ranksTa').value)
+                JSON.parse(document.getElementById('eventsTa').value)
+                err.classList.add('hidden')
+                return true
+            } catch (e) {
+                err.textContent = 'JSON tidak valid: ' + e.message
+                err.classList.remove('hidden')
+                window.scrollTo(0, document.body.scrollHeight)
+                return false
+            }
+        }
+    </script>
+</body>
+</html>

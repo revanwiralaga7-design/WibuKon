@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('layout/head') %>
+</head>
+<body class="pb-24 pt-16 md:pt-20 animate-fade">
+    <%- include('layout/navbar') %>
+
+    <main class="container mx-auto px-4 py-6 md:py-8 space-y-8 max-w-5xl">
+        <div id="accountBox"></div>
+        <section id="levelHero" class="glass-card rounded-3xl p-6 md:p-10 flex flex-col sm:flex-row items-center gap-6 md:gap-10"></section>
+
+        <section>
+            <h2 class="text-lg md:text-xl font-bold text-white mb-4">Cara Dapat EXP</h2>
+            <div id="eventsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+            <p class="text-[11px] md:text-xs text-zinc-600 mt-3">Batas harian direset tiap 00:00 UTC (07:00 WIB). Untuk user login, cap dihitung di server — tidak bisa diakali.</p>
+        </section>
+
+        <section>
+            <h2 class="text-lg md:text-xl font-bold text-white mb-4">Daftar Rank</h2>
+            <div id="rankTable" class="space-y-2"></div>
+        </section>
+
+        <section>
+            <h2 class="text-lg md:text-xl font-bold text-white mb-4">Riwayat EXP Terakhir</h2>
+            <div id="historyList" class="glass-card rounded-2xl divide-y divide-white/5 overflow-hidden"></div>
+        </section>
+
+        <div class="text-center pt-2">
+            <button id="resetLevelBtn" class="text-xs text-red-400/60 hover:text-red-400 underline transition">Reset progres lokal (mode tanpa akun)</button>
+        </div>
+    </main>
+
+    <script>
+        (function () {
+            if (!window.WibuLevel) return
+            var esc = window.WibuStore ? WibuStore.esc : function (s) { return String(s == null ? '' : s) }
+            var fmt = function (n) { return Number(n || 0).toLocaleString('id-ID') }
+
+            function renderAccount() {
+                var user = WibuLevel.getUser()
+                var box = document.getElementById('accountBox')
+                if (user) {
+                    box.innerHTML =
+                        '<div class="glass-card rounded-2xl px-4 py-3 flex items-center justify-between gap-3 border-purple-500/20">' +
+                            '<div class="flex items-center gap-3 min-w-0">' +
+                                '<div class="w-9 h-9 rounded-full bg-purple-600 flex items-center justify-center text-white font-black text-sm shrink-0">' + esc(user.username.charAt(0).toUpperCase()) + '</div>' +
+                                '<div class="min-w-0">' +
+                                    '<div class="text-sm font-bold text-white truncate">' + esc(user.username) + '</div>' +
+                                    '<div class="text-[10px] text-zinc-500">EXP tersimpan di server</div>' +
+                                '</div>' +
+                            '</div>' +
+                            '<a href="/logout" class="text-xs text-red-400 hover:text-red-300 font-medium shrink-0">Keluar</a>' +
+                        '</div>'
+                } else {
+                    box.innerHTML =
+                        '<div class="rounded-2xl px-4 py-3 flex items-center justify-between gap-3 bg-white/[0.03] border border-white/5">' +
+                            '<p class="text-xs text-zinc-400">Mode tamu: EXP hanya tersimpan di browser ini.</p>' +
+                            '<a href="/login?next=/level" class="text-xs bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 rounded-full transition shrink-0">Masuk / Daftar</a>' +
+                        '</div>'
+                }
+            }
+
+            function renderHero() {
+                var st = WibuLevel.getState()
+                document.getElementById('levelHero').innerHTML =
+                    '<div class="relative w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center text-5xl md:text-6xl shrink-0" style="background:' + st.rankColor + '22;border:2px solid ' + st.rankColor + '66;box-shadow:0 0 45px ' + st.rankColor + '33">' + st.rankIcon + '</div>' +
+                    '<div class="flex-1 w-full text-center sm:text-left">' +
+                        '<div class="flex items-baseline justify-center sm:justify-start gap-3 flex-wrap">' +
+                            '<h1 class="text-2xl md:text-4xl font-black text-white">Level ' + fmt(st.level) + '</h1>' +
+                            '<span class="text-sm md:text-lg font-bold px-3 py-1 rounded-full" style="color:' + st.rankColor + ';background:' + st.rankColor + '1a;border:1px solid ' + st.rankColor + '44">' + st.rankIcon + ' ' + esc(st.rank) + '</span>' +
+                        '</div>' +
+                        '<div class="mt-5 h-3 rounded-full bg-zinc-800 overflow-hidden">' +
+                            '<div class="h-full rounded-full transition-all duration-700" style="width:' + st.progress + '%;background:linear-gradient(90deg,' + st.rankColor + ',#8b5cf6)"></div>' +
+                        '</div>' +
+                        '<div class="mt-2 flex justify-between text-[11px] md:text-xs text-zinc-500">' +
+                            '<span>' + (st.isMax ? 'Level maksimal tercapai. Legendaris!' : fmt(st.into) + ' / ' + fmt(st.need) + ' EXP menuju Level ' + fmt(st.level + 1)) + '</span>' +
+                            '<span class="font-bold text-zinc-400">Total: ' + fmt(st.xp) + ' EXP</span>' +
+                        '</div>' +
+                    '</div>'
+            }
+
+            function renderEvents() {
+                document.getElementById('eventsGrid').innerHTML = WibuLevel.getEvents().map(function (ev) {
+                    return '<div class="glass-card rounded-2xl p-4 text-center">' +
+                        '<div class="text-purple-400 font-black text-lg md:text-xl">+' + ev.xp + '</div>' +
+                        '<div class="text-[10px] md:text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">EXP</div>' +
+                        '<div class="text-xs md:text-sm text-white font-medium">' + esc(ev.label) + '</div>' +
+                        '<div class="text-[10px] text-zinc-600 mt-1">maks ' + ev.cap + 'x/hari</div>' +
+                    '</div>'
+                }).join('')
+            }
+
+            function renderRanks() {
+                var st = WibuLevel.getState()
+                document.getElementById('rankTable').innerHTML = WibuLevel.getRanks().map(function (r) {
+                    var active = st.level >= r.min && st.level <= r.max
+                    return '<div class="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-2xl transition ' + (active ? 'glass-card' : 'bg-white/[0.02] border border-transparent') + '" ' + (active ? 'style="border-color:' + r.color + '55"' : '') + '>' +
+                        '<div class="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center text-xl md:text-2xl shrink-0" style="background:' + r.color + '22">' + r.icon + '</div>' +
+                        '<div class="flex-1 min-w-0">' +
+                            '<div class="text-sm md:text-base font-bold text-white flex items-center gap-2">' + esc(r.name) +
+                                (active ? '<span class="text-[9px] md:text-[10px] font-black px-2 py-0.5 rounded-full" style="background:' + r.color + ';color:#09090b">RANK KAMU</span>' : '') +
+                            '</div>' +
+                            '<div class="text-[10px] md:text-xs text-zinc-500">Level ' + fmt(r.min) + ' - ' + fmt(r.max) + '</div>' +
+                        '</div>' +
+                        '<div class="text-right shrink-0">' +
+                            '<div class="text-[10px] md:text-xs text-zinc-500">EXP/level</div>' +
+                            '<div class="text-xs md:text-sm font-bold text-purple-400">' + fmt(r.xpPerLevel) + '</div>' +
+                        '</div>' +
+                    '</div>'
+                }).join('')
+            }
+
+            function renderHistory() {
+                var hist = WibuLevel.getHistory()
+                document.getElementById('historyList').innerHTML = hist.length
+                    ? hist.map(function (h) {
+                        var d = new Date(h.t)
+                        return '<div class="flex justify-between items-center px-4 md:px-5 py-3">' +
+                            '<div class="text-xs md:text-sm text-zinc-300">' + esc(h.label) + '</div>' +
+                            '<div class="text-right">' +
+                                '<div class="text-purple-400 font-bold text-xs md:text-sm">+' + h.amt + ' EXP</div>' +
+                                '<div class="text-[9px] md:text-[10px] text-zinc-600">' + d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + '</div>' +
+                            '</div>' +
+                        '</div>'
+                    }).join('')
+                    : '<div class="p-6 text-center text-xs md:text-sm text-zinc-500">Belum ada aktivitas. EXP didapat dari kunjungan harian, nonton episode, bookmark, dan pencarian.</div>'
+            }
+
+            function renderAll() {
+                renderAccount()
+                renderHero()
+                renderEvents()
+                renderRanks()
+                renderHistory()
+                // Reset hanya relevan untuk mode tamu
+                document.getElementById('resetLevelBtn').style.display = WibuLevel.getUser() ? 'none' : ''
+            }
+
+            document.getElementById('resetLevelBtn').addEventListener('click', function () {
+                if (confirm('Reset progres EXP LOKAL (mode tamu)? Ini tidak bisa dibatalkan.')) {
+                    WibuLevel.reset()
+                }
+            })
+
+            WibuLevel.onChange(renderAll)
+            renderAll()
+        })()
+    </script>
+</body>
+</html>

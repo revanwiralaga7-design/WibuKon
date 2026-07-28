@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('_head', { title: 'Akses Ditolak' }) %>
+</head>
+<body>
+    <% if (typeof admin !== 'undefined' && admin) { %><%- include('_nav', { admin, section: typeof section !== 'undefined' ? section : '' }) %><% } %>
+    <div class="max-w-lg mx-auto mt-24 card rounded-3xl p-10 text-center">
+        <div class="text-4xl mb-4">⛔</div>
+        <h1 class="text-xl font-bold text-white mb-2">Akses Ditolak</h1>
+        <p class="text-sm text-zinc-400 mb-6"><%= typeof message !== 'undefined' && message ? message : 'Halaman ini khusus untuk role OWNER.' %></p>
+        <a href="/admin" class="btn inline-block">Kembali ke Dashboard</a>
+    </div>
+</body>
+</html>

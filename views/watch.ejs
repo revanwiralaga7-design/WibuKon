@@ -91,5 +91,25 @@
             </nav>
         </aside>
     </main>
+
+    <script>
+        // Simpan ke "Lanjutkan Nonton" setiap kali episode dibuka.
+        // JSON + escape \u003c agar aman disisipkan langsung di <script>.
+        (function () {
+            if (!window.WibuStore) return
+            var item = <%- JSON.stringify({
+                animeId: String(anime.id),
+                slug: anime.slug,
+                title: anime.title,
+                img: anime.img,
+                epsId: String(currentEpsData ? currentEpsData.id : currentEps),
+                epsSlug: currentEpsData ? currentEpsData.slug : `${currentEps}-episode`,
+                epsTitle: displayTitle
+            }).replace(/</g, '\\u003c') %>
+            WibuStore.saveContinue(item)
+            // +20 EXP per episode unik yang ditonton (maks 15 episode/hari)
+            if (window.WibuLevel) WibuLevel.grant('watch', item.animeId + ':' + item.epsId)
+        })()
+    </script>
 </body>
 </html>

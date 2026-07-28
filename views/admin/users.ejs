@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('_head', { title: 'User' }) %>
+</head>
+<body>
+    <%- include('_nav', { admin, section }) %>
+
+    <main class="max-w-6xl mx-auto p-4 md:p-8 space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <h1 class="text-xl md:text-2xl font-black text-white">Manajemen User <span class="text-sm font-medium text-zinc-500">(<%= total.toLocaleString('id-ID') %>)</span></h1>
+            <form method="GET" action="/admin/users" class="flex gap-2">
+                <input name="q" value="<%= q %>" placeholder="Cari username..." class="input !w-56">
+                <button class="btn btn-gray">Cari</button>
+            </form>
+        </div>
+
+        <div class="card rounded-2xl overflow-x-auto">
+            <table class="tb w-full min-w-[640px]">
+                <thead><tr><th>ID</th><th>Username</th><th>Level / Rank</th><th>EXP</th><th>Status</th><th>Terakhir Aktif</th><th></th></tr></thead>
+                <tbody>
+                    <% users.forEach(u => { %>
+                        <tr class="<%= u.is_banned ? 'opacity-50' : '' %>">
+                            <td class="text-zinc-500">#<%= u.id %></td>
+                            <td class="font-bold text-white"><%= u.username %></td>
+                            <td><span style="color:<%= u.st.rank.color %>"><%= u.st.rank.icon %> Lv.<%= u.st.level %> <%= u.st.rank.name %></span></td>
+                            <td class="text-purple-400 font-bold"><%= u.xp.toLocaleString('id-ID') %></td>
+                            <td>
+                                <% if (u.is_banned) { %><span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/30">BANNED</span>
+                                <% } else { %><span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/30">AKTIF</span><% } %>
+                            </td>
+                            <td class="text-zinc-500 text-xs"><%= u.last_seen_at ? new Date(u.last_seen_at).toLocaleString('id-ID') : '-' %></td>
+                            <td><a href="/admin/users/<%= u.id %>" class="text-purple-400 hover:text-purple-300 font-bold text-xs">Kelola →</a></td>
+                        </tr>
+                    <% }) %>
+                    <% if (!users.length) { %><tr><td colspan="7" class="text-center text-zinc-500 py-8">Tidak ada user<%= q ? ' cocok dengan "' + q + '"' : '' %>.</td></tr><% } %>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex justify-between items-center text-sm">
+            <span class="text-zinc-500 text-xs">Halaman <%= page %> dari <%= pages %></span>
+            <div class="flex gap-2">
+                <% if (page > 1) { %><a href="/admin/users?q=<%= encodeURIComponent(q) %>&page=<%= page - 1 %>" class="btn btn-gray">← Prev</a><% } %>
+                <% if (page < pages) { %><a href="/admin/users?q=<%= encodeURIComponent(q) %>&page=<%= page + 1 %>" class="btn btn-gray">Next →</a><% } %>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title><%= typeof title !== 'undefined' ? title + ' · ' : '' %>Admin WibuKon</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    body { background: #09090b; color: #e4e4e7; font-family: 'Inter', system-ui, sans-serif; }
+    .card { background: linear-gradient(180deg, rgba(39,39,42,.6), rgba(24,24,27,.6)); border: 1px solid rgba(255,255,255,.08); }
+    .input { background: rgba(39,39,42,.8); border: 1px solid rgba(255,255,255,.1); border-radius: .75rem; padding: .625rem 1rem; color: #fff; font-size: .875rem; width: 100%; }
+    .input:focus { outline: none; box-shadow: 0 0 0 2px #8b5cf6; }
+    .btn { background: linear-gradient(90deg, #9333ea, #6366f1); color: #fff; font-weight: 700; border-radius: .75rem; padding: .625rem 1.25rem; font-size: .875rem; transition: .15s; }
+    .btn:hover { opacity: .9 }
+    .btn-red { background: #7f1d1d; } .btn-red:hover { background: #991b1b; opacity: 1 }
+    .btn-gray { background: #3f3f46; } .btn-gray:hover { background: #52525b; opacity: 1 }
+    .lbl { font-size: .7rem; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: .35rem; }
+    .flash-ok { background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.3); color: #86efac; border-radius: .75rem; padding: .7rem 1rem; font-size: .8rem; margin-bottom: 1rem; }
+    .flash-err { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); color: #fca5a5; border-radius: .75rem; padding: .7rem 1rem; font-size: .8rem; margin-bottom: 1rem; }
+    table.tb th { font-size: .65rem; text-transform: uppercase; letter-spacing: .05em; color: #71717a; text-align: left; padding: .6rem .75rem; border-bottom: 1px solid rgba(255,255,255,.06); }
+    table.tb td { padding: .65rem .75rem; border-bottom: 1px solid rgba(255,255,255,.04); font-size: .8rem; }
+</style>

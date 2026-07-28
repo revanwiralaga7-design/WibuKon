@@ -2,6 +2,18 @@
 
 WibuKon adalah platform web streaming anime modern yang dibangun menggunakan Node.js, Express, dan EJS untuk server-side rendering, dengan Tailwind CSS via CDN.
 
+## Fitur
+
+- Beranda: hero carousel ongoing, episode terbaru, rekomendasi
+- Lanjutkan Nonton: otomatis tercatat saat membuka episode (localStorage `wibukonContinue`, maks 12, satu entri per anime)
+- Bookmark anime dari halaman detail, dikelola di `/bookmarks` (localStorage `wibukonBookmarks`)
+- Pencarian: riwayat pencarian (localStorage) + tombol "Muat Lebih" (pagination API `startpage`/`perpage`, mode JSON `?page=N&json=1`)
+- Jadwal rilis per hari
+- Sistem Level & EXP (`/level`): 10 rank dari Newbie (Lv.1) sampai Mythic (Lv.1000). Tamu: localStorage. **Login: EXP disimpan di PostgreSQL** (anti-cheat server-side, sinkron antar perangkat)
+- **Panel Admin** (`/admin`) dengan 2 role — owner & admin: dashboard statistik, manajemen user (adjust EXP, ban), kontrol konten (pengumuman, anime unggulan, blacklist), konfigurasi rank/event, kelola akun admin
+- Cache in-memory (`lib/cache.js`): home 5 menit, search 10 menit, detail 30 menit
+- Fallback gambar otomatis jika cover gagal dimuat
+
 ---
 
 ## Struktur Direktori
@@ -9,8 +21,13 @@ WibuKon adalah platform web streaming anime modern yang dibangun menggunakan Nod
 ```text
 Wibukon/
 ├── lib/
-│   └── ServerData.js        # Provider API data anime (Mobinime)
+│   ├── ServerData.js        # Provider API data anime (Mobinime)
+│   └── cache.js             # Cache in-memory dengan TTL
 ├── public/
+│   ├── js/
+│   │   └── app.js           # WibuStore: lanjutkan nonton & bookmark (localStorage)
+│   ├── images/
+│   │   └── placeholder.svg  # Fallback jika cover gagal dimuat
 │   ├── wibukon-banner.jpg
 │   └── wibukon.jpg
 ├── routes/
@@ -19,14 +36,16 @@ Wibukon/
 │   ├── schedule.js          # GET /schedule
 │   ├── search.js            # GET /search
 │   ├── about.js             # GET /about
-│   ├── anime.js             # GET /anime/:id
-│   └── watch.js             # GET /watch/:animeId/:epsId
+│   ├── bookmarks.js         # GET /bookmarks
+│   ├── anime.js             # GET /anime/:slug
+│   └── watch.js             # GET /watch/:animeSlug/:epsSlug
 ├── views/
 │   ├── layout/
 │   │   ├── head.ejs
 │   │   └── navbar.ejs
 │   ├── 404.ejs
 │   ├── about.ejs
+│   ├── bookmarks.ejs
 │   ├── detail.ejs
 │   ├── error.ejs
 │   ├── index.ejs
@@ -79,4 +98,42 @@ Buka http://localhost:3000
 
 ```env
 PORT=3000
+
+# PostgreSQL — kosongkan untuk mode tanpa DB (fitur akun/admin nonaktif)
+DATABASE_URL=postgres://user:password@host:5432/wibukon
+
+# Akun owner pertama (dibuat otomatis saat migrasi pertama)
+OWNER_USERNAME=owner
+OWNER_PASSWORD=ganti-password-ini
+
+# Login Google (OAuth client dari Google Cloud Console)
+# Redirect URI yang didaftarkan: https://domainmu.com/auth/google/callback
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 ```
+
+### Login Google
+
+1. Buka [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
+2. **Create Credentials → OAuth client ID** → tipe **Web application**
+3. Tambahkan **Authorized redirect URI**: `https://domainmu.com/auth/google/callback` (untuk lokal: `http://localhost:3000/auth/google/callback`)
+4. Salin Client ID & Secret ke `.env`, restart server — tombol "Masuk dengan Google" otomatis muncul di `/login` & `/register`
+
+Cara kerja: user diautentikasi Google → akun dibuat/ditautkan via `google_id` → sesi login biasa. User Google tidak punya password (tetap bisa menambah EXP, di-manage admin seperti user lain).
+
+### Panel Admin
+
+- URL: `/admin/login` — kredensial owner dari `OWNER_USERNAME`/`OWNER_PASSWORD`
+- **owner**: akses penuh (dashboard, user, konten, konfigurasi rank, kelola admin)
+- **admin**: dashboard, manajemen user, kontrol konten (tanpa halaman Rank & Admin)
+- Migrasi tabel jalan otomatis saat boot (idempoten)
+
+Role hak akses:
+
+| Fitur | Admin | Owner |
+|---|---|---|
+| Dashboard | ✅ | ✅ |
+| Manajemen user (EXP, ban) | ✅ | ✅ |
+| Kontrol konten | ✅ | ✅ |
+| Konfigurasi rank & event | ❌ | ✅ |
+| Kelola akun admin | ❌ | ✅ |

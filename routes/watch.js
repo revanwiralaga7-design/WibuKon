@@ -1,5 +1,6 @@
 const express = require('express')
 const router = express.Router()
+const settingsCache = require('../lib/settingsCache')
 
 module.exports = (mobinime) => {
     router.get('/:animeSlug/:epsSlug', async (req, res) => {
@@ -8,8 +9,21 @@ module.exports = (mobinime) => {
             const animeId = animeSlug.split('-')[0]
             const epsId = epsSlug.split('-')[0]
 
-            const streamUrl = await mobinime.stream(animeId, epsId)
-            const detailData = await mobinime.detail(animeId)
+            if (!/^\d+$/.test(animeId) || !/^\d+$/.test(epsId)) {
+                return res.status(404).render('404', { active: '' })
+            }
+
+            if ((await settingsCache.getBlacklistSet()).has(animeId)) {
+                return res.status(404).render('404', { active: '' })
+            }
+
+            // stream & detail tidak saling bergantung -> dijalankan paralel.
+            // Jika stream gagal, halaman TETAP tampil dengan daftar episode
+            // (watch.ejs sudah punya fallback "Stream Error" untuk url null).
+            const [streamUrl, detailData] = await Promise.all([
+                mobinime.stream(animeId, epsId).catch(() => null),
+                mobinime.detail(animeId)
+            ])
 
             res.render('watch', {
                 url: streamUrl,
@@ -18,7 +32,7 @@ module.exports = (mobinime) => {
                 active: 'home'
             })
         } catch (error) {
-            res.render('error', { error: error.message })
+            res.status(500).render('error', { error: error.message })
         }
     })
 
