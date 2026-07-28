@@ -130,7 +130,7 @@
             
             <nav class="overflow-y-auto custom-scroll p-2 md:p-3 space-y-2 lg:flex-grow" aria-label="Episodes">
                 <% anime.episodes.forEach(eps => { %>
-                    <a href="/watch/<%= anime.slug %>/<%= eps.slug %>" 
+                    <a href="/watch/<%= anime.slug %>/<%= eps.slug %>" data-eps="<%= eps.id %>"
                        class="flex items-center gap-3 p-3 rounded-lg transition-all group <%= currentEps === eps.id ? 'bg-purple-600/10 border border-purple-500/50' : 'bg-slate-800/40 border border-transparent hover:bg-slate-800' %>"
                        <% if(currentEps === eps.id) { %>aria-current="page"<% } %>>
                         
@@ -145,6 +145,7 @@
                         <div class="flex-col overflow-hidden">
                             <span class="block text-sm md:text-base font-medium truncate <%= currentEps === eps.id ? 'text-purple-300' : 'text-slate-300 group-hover:text-white' %>">
                                 <%= eps.title %>
+                                <svg class="watched-badge inline-block w-3.5 h-3.5 md:w-4 md:h-4 text-purple-400 -mt-0.5" style="display:none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-label="Sudah ditonton"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                             </span>
                             <span class="text-[10px] md:text-xs text-slate-500">Click to Play Episode</span>
                         </div>
@@ -171,6 +172,25 @@
             WibuStore.saveContinue(item)
             // +20 EXP per episode unik yang ditonton (maks 15 episode/hari)
             if (window.WibuLevel) WibuLevel.grant('watch', item.animeId + ':' + item.epsId)
+
+            // Tandai episode ini "sudah ditonton": lokal + server (jika login)
+            WibuStore.markWatched(item.animeId, item.epsId)
+            WibuStore.pushWatched(item.animeId, item.epsId)
+
+            // Beri tanda ✓ di daftar episode untuk semua yang sudah ditonton
+            function paintWatched(eps) {
+                var set = {}
+                eps.forEach(function (id) { set[String(id)] = true })
+                document.querySelectorAll('[data-eps]').forEach(function (a) {
+                    var on = !!set[a.getAttribute('data-eps')]
+                    var badge = a.querySelector('.watched-badge')
+                    if (badge) badge.style.display = on ? 'inline-block' : 'none'
+                    // Episode yang sedang diputar tetap terang (highlight purple)
+                    if (!a.hasAttribute('aria-current')) a.classList.toggle('opacity-50', on)
+                })
+            }
+            paintWatched(WibuStore.getWatched(item.animeId))
+            WibuStore.syncWatched(item.animeId, paintWatched)
         })()
     </script>
 </body>

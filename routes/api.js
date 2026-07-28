@@ -41,4 +41,36 @@ router.post('/exp', async (req, res) => {
     }
 })
 
+// GET /api/watched/:animeId — daftar episode yang sudah ditonton user (login).
+// Tanpa DB / anon: ok:false -> klien fallback ke daftar lokal (localStorage).
+router.get('/watched/:animeId', async (req, res) => {
+    if (!db.enabled()) return res.json({ ok: false, reason: 'no_db' })
+    if (!req.authUser) return res.status(401).json({ ok: false, reason: 'not_logged_in' })
+    const animeId = String(req.params.animeId || '')
+    if (!/^\d+$/.test(animeId)) return res.status(400).json({ ok: false, reason: 'bad_id' })
+    try {
+        const eps = await store.watchedForAnime(req.authUser.id, animeId)
+        res.json({ ok: true, eps })
+    } catch (e) {
+        res.status(500).json({ ok: false, reason: 'server_error' })
+    }
+})
+
+// POST /api/watched — tandai episode sudah ditonton { animeId, epsId } (idempoten)
+router.post('/watched', async (req, res) => {
+    if (!db.enabled()) return res.json({ ok: false, reason: 'no_db' })
+    if (!req.authUser) return res.status(401).json({ ok: false, reason: 'not_logged_in' })
+    const animeId = String(req.body.animeId || '')
+    const epsId = String(req.body.epsId || '')
+    if (!/^\d+$/.test(animeId) || !/^\d+$/.test(epsId)) {
+        return res.status(400).json({ ok: false, reason: 'bad_id' })
+    }
+    try {
+        await store.markWatchedDb(req.authUser.id, animeId, epsId)
+        res.json({ ok: true })
+    } catch (e) {
+        res.status(500).json({ ok: false, reason: 'server_error' })
+    }
+})
+
 module.exports = router
