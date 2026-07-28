@@ -173,6 +173,9 @@
             // +20 EXP per episode unik yang ditonton (maks 15 episode/hari)
             if (window.WibuLevel) WibuLevel.grant('watch', item.animeId + ':' + item.epsId)
 
+            // Guard: app.js lama (cache) belum punya fungsi watched -> lewati bagian ini saja
+            if (!WibuStore.markWatched) return
+
             // Tandai episode ini "sudah ditonton": lokal + server (jika login)
             WibuStore.markWatched(item.animeId, item.epsId)
             WibuStore.pushWatched(item.animeId, item.epsId)

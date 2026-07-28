@@ -25,7 +25,16 @@ window.WibuStore = (function () {
     }
 
     /* ================= Lanjutkan Nonton ================= */
-    // Satu entri per anime: menonton episode baru menimpa episode lama.
+    // Satu entri per anime: mencatat episode TERJAUH yang pernah dibuka,
+    // jadi rewatch episode lama tidak menurunkan progres.
+
+    // Ambil nomor episode dari slug ("10-episode-3" -> 3) atau judul ("Episode 3" -> 3)
+    function epsNum(item) {
+        var m = /-episode-(\d+)/.exec((item && item.epsSlug) || '')
+        if (m) return parseInt(m[1], 10)
+        var d = /\d+/.exec((item && item.epsTitle) || '')
+        return d ? parseInt(d[0], 10) : 0
+    }
 
     function getContinue() {
         return read(CONTINUE_KEY)
@@ -34,9 +43,25 @@ window.WibuStore = (function () {
     // item: { animeId, slug, title, img, epsId, epsSlug, epsTitle }
     function saveContinue(item) {
         if (!item || !item.animeId || !item.epsId || !item.slug || !item.epsSlug) return
-        var list = read(CONTINUE_KEY).filter(function (x) {
-            return String(x.animeId) !== String(item.animeId)
-        })
+        var list = read(CONTINUE_KEY)
+        var idx = -1
+        for (var i = 0; i < list.length; i++) {
+            if (String(list[i].animeId) === String(item.animeId)) { idx = i; break }
+        }
+        if (idx !== -1) {
+            var prev = list[idx]
+            var prevN = epsNum(prev)
+            var newN = epsNum(item)
+            list.splice(idx, 1)
+            // Episode baru lebih KECIL (rewatch) & nomor keduanya valid:
+            // jangan mundurkan progres — simpan yang terjauh, tapi tetap naik ke atas.
+            if (newN > 0 && prevN > 0 && newN < prevN) {
+                prev.updatedAt = Date.now()
+                list.unshift(prev)
+                write(CONTINUE_KEY, list.slice(0, MAX_CONTINUE))
+                return
+            }
+        }
         item.updatedAt = Date.now()
         list.unshift(item)
         write(CONTINUE_KEY, list.slice(0, MAX_CONTINUE))

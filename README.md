@@ -5,7 +5,7 @@ WibuKon adalah platform web streaming anime modern yang dibangun menggunakan Nod
 ## Fitur
 
 - Beranda: hero carousel ongoing, episode terbaru, rekomendasi
-- Lanjutkan Nonton: otomatis tercatat saat membuka episode (localStorage `wibukonContinue`, maks 12, satu entri per anime)
+- Lanjutkan Nonton: otomatis tercatat episode **terjauh** yang pernah dibuka per anime — rewatch episode lama tidak menurunkan progres (localStorage `wibukonContinue`, maks 12)
 - **Tanda episode sudah ditonton** (✓): setiap tile di halaman detail & daftar episode halaman nonton ditandai otomatis + progres "n/total ditonton". Disimpan lokal (localStorage `wibukonWatched`, LRU 100 anime × 1.500 episode) dan **disinkronkan ke PostgreSQL per akun** saat login (`/api/watched`) — nyambung lintas perangkat
 - Bookmark anime dari halaman detail, dikelola di `/bookmarks` (localStorage `wibukonBookmarks`)
 - Pencarian: riwayat pencarian (localStorage) + tombol "Muat Lebih" (pagination API `startpage`/`perpage`, mode JSON `?page=N&json=1`)

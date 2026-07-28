@@ -118,7 +118,8 @@
         // Tandai episode yang sudah ditonton (✓ + progres "n/total").
         // Sumber: localStorage (instan) lalu merge dari server jika user login.
         (function () {
-            if (!window.WibuStore) return
+            // Guard: app.js lama (cache) belum punya fungsi watched -> skip diam-diam
+            if (!window.WibuStore || !WibuStore.getWatched || !WibuStore.syncWatched) return
             var ANIME_ID = <%- JSON.stringify(String(anime.id)) %>
             var TOTAL = <%= Number(anime.episodes.length) || 0 %>
 
