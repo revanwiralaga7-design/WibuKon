@@ -9,7 +9,11 @@
         <div class="text-4xl mb-4">⛔</div>
         <h1 class="text-xl font-bold text-white mb-2">Akses Ditolak</h1>
         <p class="text-sm text-zinc-400 mb-6"><%= typeof message !== 'undefined' && message ? message : 'Halaman ini khusus untuk role OWNER.' %></p>
-        <a href="/admin" class="btn inline-block">Kembali ke Dashboard</a>
+        <% if (typeof admin !== 'undefined' && admin) { %>
+            <a href="/admin" class="btn inline-block">Kembali ke Dashboard</a>
+        <% } else { %>
+            <a href="/" class="btn inline-block">Kembali ke Beranda</a>
+        <% } %>
     </div>
 </body>
 </html>

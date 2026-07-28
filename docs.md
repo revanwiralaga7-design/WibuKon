@@ -13,7 +13,7 @@ WibuKon adalah platform web streaming anime modern yang dibangun menggunakan Nod
 - Sistem Level & EXP (`/level`): 10 rank dari Newbie (Lv.1) sampai Mythic (Lv.1000). Tamu: localStorage. **Login: EXP disimpan di PostgreSQL** (anti-cheat server-side, sinkron antar perangkat)
 - **Leaderboard** (`/leaderboard`): peringkat EXP harian / 7 hari / 30 hari / semua waktu, medali top 3, sorotan posisi sendiri (EXP dari penyesuaian admin tidak dihitung)
 - **Komentar per episode** di halaman nonton: login untuk menulis (maks 500 karakter, jeda 15 detik), tamu tetap bisa membaca. User bisa hapus komentarnya sendiri; **staff (role admin/owner) bisa menghapus komentar siapa pun** + punya badge 👑/🛡
-- **Panel Admin** (`/admin`) dengan 2 role — owner & admin: dashboard statistik, manajemen user (adjust EXP, ban, **ubah role publik**), kontrol konten (pengumuman, anime unggulan, blacklist), konfigurasi rank/event, kelola akun admin
+- **Panel Admin** (`/admin`) **satu pintu dengan akun user** (login password/Google) — 2 role: owner & admin: dashboard statistik, manajemen user (adjust EXP, ban, **ubah role** = cara mengangkat admin/owner baru), kontrol konten (pengumuman, anime unggulan, blacklist), konfigurasi rank/event
 - Login Google (OAuth 2.0) — auto buat/tautkan akun via `google_id`, avatar tampil di navbar & komentar
 - Cache in-memory (`lib/cache.js`): home 5 menit, search 10 menit, detail 30 menit
 - Fallback gambar otomatis jika cover gagal dimuat
@@ -106,9 +106,10 @@ PORT=3000
 # PostgreSQL — kosongkan untuk mode tanpa DB (fitur akun/admin nonaktif)
 DATABASE_URL=postgres://user:password@host:5432/wibukon
 
-# Akun owner pertama (dibuat otomatis saat migrasi pertama)
+# Bootstrap owner: user yang login dengan username/email ini otomatis
+# jadi OWNER (hanya jika situs belum punya owner sama sekali)
 OWNER_USERNAME=owner
-OWNER_PASSWORD=ganti-password-ini
+# OWNER_EMAIL=emailkamu@gmail.com
 
 # Login Google (OAuth client dari Google Cloud Console)
 # Redirect URI yang didaftarkan: https://domainmu.com/auth/google/callback
@@ -127,9 +128,11 @@ Cara kerja: user diautentikasi Google → akun dibuat/ditautkan via `google_id` 
 
 ### Panel Admin
 
-- URL: `/admin/login` — kredensial owner dari `OWNER_USERNAME`/`OWNER_PASSWORD`
-- **owner**: akses penuh (dashboard, user, konten, konfigurasi rank, kelola admin)
-- **admin**: dashboard, manajemen user, kontrol konten (tanpa halaman Rank & Admin)
+- URL: `/admin` — **SATU PINTU dengan akun user biasa**: login pakai akun (password/Google) yang rolenya `owner`/`admin`. Akun biasa (role `user`) otomatis ditolak. Tidak ada form login admin terpisah.
+- **Bootstrap owner pertama**: set `OWNER_USERNAME` (dan/atau `OWNER_EMAIL`) di env, lalu daftar/login dengan akun tsb — otomatis jadi OWNER jika situs belum punya owner.
+- **owner**: akses penuh (dashboard, user, konten, konfigurasi rank)
+- **admin**: dashboard, manajemen user, kontrol konten (tanpa halaman Rank)
+- Menambah admin/owner baru: owner buka detail user di panel -> ubah role
 - Migrasi tabel jalan otomatis saat boot (idempoten)
 
 Role hak akses:
@@ -141,6 +144,5 @@ Role hak akses:
 | Ubah role publik user (user/admin/owner — badge & command komentar) | ❌ | ✅ |
 | Kontrol konten | ✅ | ✅ |
 | Konfigurasi rank & event | ❌ | ✅ |
-| Kelola akun admin | ❌ | ✅ |
 
-> Catatan: ada dua konsep role. **Role panel** (`admins` table) = akses ke `/admin`. **Role publik** (`users.role`) = badge 🛡/👑 di komentar & leaderboard + bisa menghapus komentar siapa pun. Owner panel mengatur role publik dari halaman detail user.
+> Catatan: role `users.role` (`user`/`admin`/`owner`) sekaligus menentukan tiga hal: akses panel `/admin`, badge 🛡/👑 di komentar & leaderboard, dan izin menghapus komentar siapa pun. Satu akun, satu role, tidak ada tabel admin terpisah.

@@ -5,7 +5,7 @@ const router = express.Router()
 const db = require('../lib/db')
 const store = require('../lib/store')
 const { hashPassword, verifyPassword } = require('../lib/cryptoUtil')
-const { USER_COOKIE, setSessionCookie, clearCookie, cookieLine, parseCookies, loginRateOk, loginFailed, loginSucceeded } = require('../lib/authUtil')
+const { USER_COOKIE, setSessionCookie, clearCookie, cookieLine, parseCookies, loginRateOk, loginFailed, loginSucceeded, maybeBootstrapOwner } = require('../lib/authUtil')
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
@@ -52,6 +52,7 @@ router.post('/register', async (req, res) => {
 
     try {
         const user = await store.createUser(username, hashPassword(password))
+        await maybeBootstrapOwner(user) // cocok env & belum ada owner -> jadi OWNER
         const s = await store.createSession('user', user.id)
         setSessionCookie(res, req, USER_COOKIE, s.token)
         res.redirect('/level')
@@ -91,6 +92,7 @@ router.post('/login', async (req, res) => {
             return res.status(403).render('login', { active: '', next: nextUrl, google: googleEnabled(), error: 'Akun ini diblokir. Hubungi admin.' })
         }
         loginSucceeded(ip)
+        await maybeBootstrapOwner(user)
         const s = await store.createSession('user', user.id)
         setSessionCookie(res, req, USER_COOKIE, s.token)
         res.redirect(nextUrl)
@@ -190,7 +192,8 @@ router.get('/auth/google/callback', async (req, res) => {
             user.avatar_url = info.picture
         }
 
-        // 4. Terbitkan sesi seperti login biasa
+        // 4. Bootstrap owner bila cocok env lalu terbitkan sesi seperti login biasa
+        await maybeBootstrapOwner(user)
         const s = await store.createSession('user', user.id)
         setSessionCookie(res, req, USER_COOKIE, s.token)
         res.redirect(nextUrl === '/' ? '/level' : nextUrl)

@@ -1,63 +1,22 @@
-// Panel admin WibuKon — semua route /admin/* dilindungi requireAdmin,
-// sebagian (konfigurasi rank & kelola admin) hanya untuk role OWNER.
+// Panel admin WibuKon — SATU PINTU dengan akun user biasa.
+// Masuk /admin wajib login akun (password/Google) ber-role admin/owner;
+// sebagian route (konfigurasi rank, ubah role user) khusus OWNER.
 const express = require('express')
-const db = require('../lib/db')
 const store = require('../lib/store')
 const levels = require('../lib/levels')
 const expService = require('../lib/expService')
 const settingsCache = require('../lib/settingsCache')
-const { hashPassword, verifyPassword } = require('../lib/cryptoUtil')
-const {
-    ADMIN_COOKIE, setSessionCookie, clearCookie, parseCookies,
-    loginRateOk, loginFailed, loginSucceeded, requireAdmin, requireOwner
-} = require('../lib/authUtil')
-
-const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
+const { requireAdmin, requireOwner } = require('../lib/authUtil')
 
 module.exports = (mobinime) => {
     const router = express.Router()
 
-    /* ================= AUTH ADMIN ================= */
+    // URL lama (bookmark): dulu ada form login terpisah — sekarang dilempar
+    // ke alur login akun biasa lewat requireAdmin -> /login?next=/admin
+    router.get('/login', (req, res) => res.redirect('/admin'))
+    router.get('/logout', (req, res) => res.redirect('/'))
 
-    router.get('/login', async (req, res) => {
-        if (!db.enabled()) return res.status(503).render('error', { error: 'DATABASE_URL belum dikonfigurasi — panel admin nonaktif.' })
-        try {
-            const token = parseCookies(req)[ADMIN_COOKIE]
-            if (token && await store.findSession(token, 'admin')) return res.redirect('/admin')
-        } catch (e) {}
-        res.render('admin/login', { error: null })
-    })
-
-    router.post('/login', async (req, res) => {
-        if (!db.enabled()) return res.status(503).render('error', { error: 'DATABASE_URL belum dikonfigurasi.' })
-        const ip = req.ip || 'unknown'
-        if (!loginRateOk(ip)) return res.status(429).render('admin/login', { error: 'Terlalu banyak percobaan. Coba lagi 10 menit.' })
-
-        try {
-            const admin = await store.findAdminByName(String(req.body.username || '').trim())
-            if (!admin || !verifyPassword(String(req.body.password || ''), admin.password_hash)) {
-                loginFailed(ip)
-                return res.status(401).render('admin/login', { error: 'Username atau password salah.' })
-            }
-            loginSucceeded(ip)
-            const s = await store.createSession('admin', admin.id)
-            setSessionCookie(res, req, ADMIN_COOKIE, s.token)
-            res.redirect('/admin')
-        } catch (e) {
-            res.status(500).render('admin/login', { error: 'Server sibuk, coba lagi.' })
-        }
-    })
-
-    router.get('/logout', async (req, res) => {
-        try {
-            const token = parseCookies(req)[ADMIN_COOKIE]
-            if (token) await store.deleteSession(token)
-        } catch (e) {}
-        clearCookie(res, req, ADMIN_COOKIE)
-        res.redirect('/admin/login')
-    })
-
-    /* ================= SEMUA DI BAWAH INI WAJIB ADMIN ================= */
+    /* ================= SEMUA DI BAWAH INI WAJIB ADMIN/OWNER ================= */
     router.use(requireAdmin)
 
     /* ---------- DASHBOARD ---------- */
@@ -222,42 +181,10 @@ module.exports = (mobinime) => {
         }
     })
 
-    /* ---------- KELOLA AKUN ADMIN (khusus OWNER) ---------- */
-    router.get('/admins', requireOwner, async (req, res) => {
-        const admins = await store.listAdmins()
-        res.render('admin/admins', {
-            section: 'admins', admins,
-            flash: req.query.ok ? { ok: req.query.ok } : (req.query.err ? { err: req.query.err } : null)
-        })
-    })
-
-    router.post('/admins', requireOwner, async (req, res) => {
-        const username = String(req.body.username || '').toLowerCase().trim()
-        const password = String(req.body.password || '')
-        const role = req.body.role === 'owner' ? 'owner' : 'admin'
-        if (!USERNAME_RE.test(username) || password.length < 8) {
-            return res.redirect('/admin/admins?err=' + encodeURIComponent('Username 3-20 karakter & password minimal 8 karakter'))
-        }
-        try {
-            await store.createAdmin(username, hashPassword(password), role)
-            res.redirect('/admin/admins?ok=' + encodeURIComponent(`Admin "${username}" (${role}) dibuat`))
-        } catch (e) {
-            res.redirect('/admin/admins?err=' + encodeURIComponent(e.code === '23505' ? 'Username sudah dipakai' : 'Gagal membuat admin'))
-        }
-    })
-
-    router.post('/admins/:id/delete', requireOwner, async (req, res) => {
-        try {
-            const target = await store.findAdminById(parseInt(req.params.id))
-            if (!target) return res.redirect('/admin/admins?err=Admin tidak ditemukan')
-            if (target.id === req.admin.id) return res.redirect('/admin/admins?err=' + encodeURIComponent('Tidak bisa menghapus akun sendiri'))
-            if (target.role === 'owner') return res.redirect('/admin/admins?err=' + encodeURIComponent('Akun owner tidak bisa dihapus'))
-            await store.deleteAdmin(target.id)
-            res.redirect('/admin/admins?ok=' + encodeURIComponent(`Admin "${target.username}" dihapus`))
-        } catch (e) {
-            res.redirect('/admin/admins?err=' + encodeURIComponent('Gagal menghapus'))
-        }
-    })
+    /* ---------- CATATAN ----------
+       Tidak ada lagi halaman "kelola akun admin" terpisah: menaikkan/
+       menurunkan admin cukup lewat Manajemen User -> ubah ROLE
+       (POST /admin/users/:id/role, khusus OWNER di atas). */
 
     return router
 }
