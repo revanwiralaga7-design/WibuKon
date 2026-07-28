@@ -6,6 +6,7 @@
             <a href="/schedule" class="hover:text-white transition <%= active === 'schedule' ? 'text-white' : '' %>">Jadwal Rilis</a>
             <a href="/bookmarks" class="hover:text-white transition <%= active === 'bookmarks' ? 'text-white' : '' %>">Tersimpan</a>
             <a href="/level" class="hover:text-white transition <%= active === 'level' ? 'text-white' : '' %>">Level</a>
+            <a href="/leaderboard" class="hover:text-white transition <%= active === 'leaderboard' ? 'text-white' : '' %>">Peringkat</a>
             <a href="/about" class="hover:text-white transition <%= active === 'about' ? 'text-white' : '' %>">Tentang</a>
         </div>
     </div>
@@ -62,7 +63,7 @@
 </nav>
 
 <nav class="md:hidden fixed bottom-0 w-full z-50 bg-[#0f0f11]/95 backdrop-blur-xl border-t border-white/5 pb-safe">
-    <div class="grid grid-cols-6 h-16">
+    <div class="grid grid-cols-7 h-16">
         <a href="/" class="flex flex-col items-center justify-center gap-1 group <%= active === 'home' ? 'active-nav' : 'text-zinc-500' %>">
             <svg class="w-6 h-6 transition group-active:scale-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
             <span class="text-[10px] font-medium">Beranda</span>
@@ -82,6 +83,10 @@
         <a href="/level" class="flex flex-col items-center justify-center gap-1 group <%= active === 'level' ? 'active-nav' : 'text-zinc-500' %>">
             <svg class="w-6 h-6 transition group-active:scale-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
             <span class="text-[10px] font-medium">Level</span>
+        </a>
+        <a href="/leaderboard" class="flex flex-col items-center justify-center gap-1 group <%= active === 'leaderboard' ? 'active-nav' : 'text-zinc-500' %>">
+            <svg class="w-6 h-6 transition group-active:scale-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21h8m-4-4v4M7 4h10v5a5 5 0 01-10 0V4zM7 6H4a2 2 0 002 4h1m10-4h3a2 2 0 01-2 4h-1"></path></svg>
+            <span class="text-[10px] font-medium">Top</span>
         </a>
         <a href="/about" class="flex flex-col items-center justify-center gap-1 group <%= active === 'about' ? 'active-nav' : 'text-zinc-500' %>">
             <svg class="w-6 h-6 transition group-active:scale-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>

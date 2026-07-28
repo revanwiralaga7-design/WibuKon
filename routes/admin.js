@@ -139,6 +139,23 @@ module.exports = (mobinime) => {
         }
     })
 
+    // Ubah ROLE user publik (user/admin/owner) — khusus OWNER.
+    // Role menentukan badge di komentar/leaderboard & hak hapus komentar orang.
+    router.post('/users/:id/role', requireOwner, async (req, res) => {
+        try {
+            const role = String(req.body.role || '')
+            if (!['user', 'admin', 'owner'].includes(role)) {
+                return res.redirect(`/admin/users/${req.params.id}?err=` + encodeURIComponent('Role tidak valid'))
+            }
+            const user = await store.findUserById(parseInt(req.params.id))
+            if (!user) return res.redirect('/admin/users')
+            await store.setUserRole(user.id, role)
+            res.redirect(`/admin/users/${user.id}?ok=` + encodeURIComponent(`Role ${user.username} -> ${role.toUpperCase()}`))
+        } catch (e) {
+            res.redirect(`/admin/users/${req.params.id}?err=` + encodeURIComponent('Gagal mengubah role'))
+        }
+    })
+
     /* ---------- KONTROL KONTEN (announcement / featured / blacklist) ---------- */
     router.get('/content', async (req, res) => {
         try {

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('layout/head') %>
+</head>
+<body class="pb-24 pt-16 md:pt-20 animate-fade">
+    <%- include('layout/navbar') %>
+
+    <main class="container mx-auto px-4 py-6 md:py-8 max-w-4xl">
+        <header class="text-center mb-6 md:mb-8">
+            <h1 class="text-2xl md:text-4xl font-black text-white mb-2">🏆 Papan Peringkat</h1>
+            <p class="text-zinc-400 text-sm md:text-base">Pejuang EXP teratas — <%= period.label.toLowerCase() %></p>
+        </header>
+
+        <nav class="flex justify-center gap-2 mb-6 flex-wrap">
+            <% Object.keys(periods).forEach(key => { %>
+                <a href="/leaderboard?p=<%= key %>" class="px-4 py-2 rounded-full text-xs md:text-sm font-bold transition <%= p === key ? 'bg-purple-600 text-white' : 'bg-zinc-800/60 text-zinc-400 hover:text-white border border-white/10' %>"><%= periods[key].label %></a>
+            <% }) %>
+        </nav>
+
+        <% if (me && !me.inTop) { %>
+            <div class="glass-card rounded-2xl px-4 py-3 mb-5 flex items-center justify-between border-purple-500/30">
+                <span class="text-xs md:text-sm text-zinc-300 ">Posisi kamu: <b class="text-white"><%= me.username %></b></span>
+                <span class="text-xs md:text-sm">
+                    <% if (me.rank) { %><b class="text-purple-400">#<%= me.rank.toLocaleString('id-ID') %></b> · <% } %>
+                    <b class="text-purple-400"><%= me.amount.toLocaleString('id-ID') %> EXP</b>
+                </span>
+            </div>
+        <% } %>
+
+        <% if (rows.length) { %>
+            <div class="space-y-2">
+                <% rows.forEach((u, i) => { const rank = i + 1 %>
+                    <div class="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-2xl transition <%= (typeof authUser !== 'undefined' && authUser && authUser.id === u.id) ? 'glass-card border-purple-500/50' : (rank <= 3 ? 'glass-card' : 'bg-white/[0.02] border border-white/5') %>">
+                        <div class="w-9 text-center shrink-0">
+                            <% if (rank === 1) { %><span class="text-2xl">🥇</span>
+                            <% } else if (rank === 2) { %><span class="text-2xl">🥈</span>
+                            <% } else if (rank === 3) { %><span class="text-2xl">🥉</span>
+                            <% } else { %><span class="text-sm md:text-base font-black text-zinc-500">#<%= rank %></span><% } %>
+                        </div>
+                        <% if (u.avatar_url) { %><img src="<%= u.avatar_url %>" alt="" class="w-10 h-10 md:w-11 md:h-11 rounded-full object-cover shrink-0 border border-white/10" referrerpolicy="no-referrer" loading="lazy">
+                        <% } else { %><span class="w-10 h-10 md:w-11 md:h-11 rounded-full bg-zinc-700 flex items-center justify-center text-white font-black shrink-0"><%= u.username.charAt(0).toUpperCase() %></span><% } %>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm md:text-base font-bold text-white truncate"><%= u.username %></span>
+                                <% if (u.role === 'owner') { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 shrink-0">👑 OWNER</span>
+                                <% } else if (u.role === 'admin') { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40 shrink-0">🛡 ADMIN</span><% } %>
+                            </div>
+                            <% if (typeof authUser !== 'undefined' && authUser && authUser.id === u.id) { %><span class="text-[10px] text-purple-400 font-bold">INI KAMU 😎</span><% } %>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <div class="text-sm md:text-lg font-black text-purple-400"><%= u.amount.toLocaleString('id-ID') %></div>
+                            <div class="text-[9px] md:text-[10px] text-zinc-600 font-bold uppercase">EXP</div>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <div class="text-center py-16">
+                <div class="text-4xl mb-3">🌙</div>
+                <p class="text-zinc-500 text-sm">Belum ada yang mengumpulkan EXP periode ini.<br>Jadilah yang pertama dengan nonton anime!</p>
+            </div>
+        <% } %>
+
+        <p class="text-center text-[11px] text-zinc-600 mt-8">Hanya EXP dari aktivitas yang dihitung (penyesuaian admin tidak masuk peringkat). Reset periode mengikuti tanggal UTC.</p>
+    </main>
+</body>
+</html>

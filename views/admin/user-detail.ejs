@@ -15,8 +15,9 @@
         <section class="card rounded-3xl p-6 flex flex-wrap items-center gap-6">
             <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl" style="background:<%= st.rank.color %>22"><%= st.rank.icon %></div>
             <div class="flex-1 min-w-[200px]">
-                <h1 class="text-2xl font-black text-white flex items-center gap-3">
+                <h1 class="text-2xl font-black text-white flex items-center gap-3 flex-wrap">
                     <%= user.username %>
+                    <span class="text-[10px] font-black px-2 py-0.5 rounded-full <%= user.role === 'owner' ? 'bg-yellow-500/15 text-yellow-300 border border-yellow-500/30' : (user.role === 'admin' ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30' : 'bg-zinc-500/15 text-zinc-400 border border-zinc-500/30') %>"><%= (user.role || 'user').toUpperCase() %></span>
                     <% if (user.is_banned) { %><span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/30">BANNED</span><% } %>
                 </h1>
                 <p class="text-sm text-zinc-400 mt-1">
@@ -48,6 +49,21 @@
                         <%= user.is_banned ? 'Buka Blokir User' : 'Blokir User (ban + keluarkan sesi)' %>
                     </button>
                 </form>
+
+                <% if (admin.role === 'owner') { %>
+                <div class="border-t border-white/5 pt-4">
+                    <h2 class="font-bold text-white mb-1">Role Publik (command komentar & badge)</h2>
+                    <p class="text-[11px] text-zinc-500 mb-3">admin/owner: badge di komentar & leaderboard, bisa menghapus komentar siapa pun.</p>
+                    <form method="POST" action="/admin/users/<%= user.id %>/role" class="flex gap-2">
+                        <select name="role" class="input">
+                            <option value="user" <%= (user.role || 'user') === 'user' ? 'selected' : '' %>>user — biasa</option>
+                            <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>admin — staff</option>
+                            <option value="owner" <%= user.role === 'owner' ? 'selected' : '' %>>owner — staff penuh</option>
+                        </select>
+                        <button class="btn shrink-0">Ubah Role</button>
+                    </form>
+                </div>
+                <% } %>
             </section>
 
             <section class="card rounded-2xl p-5">

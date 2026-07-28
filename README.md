@@ -10,7 +10,10 @@ WibuKon adalah platform web streaming anime modern yang dibangun menggunakan Nod
 - Pencarian: riwayat pencarian (localStorage) + tombol "Muat Lebih" (pagination API `startpage`/`perpage`, mode JSON `?page=N&json=1`)
 - Jadwal rilis per hari
 - Sistem Level & EXP (`/level`): 10 rank dari Newbie (Lv.1) sampai Mythic (Lv.1000). Tamu: localStorage. **Login: EXP disimpan di PostgreSQL** (anti-cheat server-side, sinkron antar perangkat)
-- **Panel Admin** (`/admin`) dengan 2 role — owner & admin: dashboard statistik, manajemen user (adjust EXP, ban), kontrol konten (pengumuman, anime unggulan, blacklist), konfigurasi rank/event, kelola akun admin
+- **Leaderboard** (`/leaderboard`): peringkat EXP harian / 7 hari / 30 hari / semua waktu, medali top 3, sorotan posisi sendiri (EXP dari penyesuaian admin tidak dihitung)
+- **Komentar per episode** di halaman nonton: login untuk menulis (maks 500 karakter, jeda 15 detik), tamu tetap bisa membaca. User bisa hapus komentarnya sendiri; **staff (role admin/owner) bisa menghapus komentar siapa pun** + punya badge 👑/🛡
+- **Panel Admin** (`/admin`) dengan 2 role — owner & admin: dashboard statistik, manajemen user (adjust EXP, ban, **ubah role publik**), kontrol konten (pengumuman, anime unggulan, blacklist), konfigurasi rank/event, kelola akun admin
+- Login Google (OAuth 2.0) — auto buat/tautkan akun via `google_id`, avatar tampil di navbar & komentar
 - Cache in-memory (`lib/cache.js`): home 5 menit, search 10 menit, detail 30 menit
 - Fallback gambar otomatis jika cover gagal dimuat
 
@@ -134,6 +137,9 @@ Role hak akses:
 |---|---|---|
 | Dashboard | ✅ | ✅ |
 | Manajemen user (EXP, ban) | ✅ | ✅ |
+| Ubah role publik user (user/admin/owner — badge & command komentar) | ❌ | ✅ |
 | Kontrol konten | ✅ | ✅ |
 | Konfigurasi rank & event | ❌ | ✅ |
 | Kelola akun admin | ❌ | ✅ |
+
+> Catatan: ada dua konsep role. **Role panel** (`admins` table) = akses ke `/admin`. **Role publik** (`users.role`) = badge 🛡/👑 di komentar & leaderboard + bisa menghapus komentar siapa pun. Owner panel mengatur role publik dari halaman detail user.
