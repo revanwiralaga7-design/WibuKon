@@ -11,6 +11,7 @@ WibuKon adalah platform web streaming anime modern yang dibangun menggunakan Nod
 - Pencarian: riwayat pencarian (localStorage) + tombol "Muat Lebih" (pagination API `startpage`/`perpage`, mode JSON `?page=N&json=1`)
 - Jadwal rilis per hari
 - Sistem Level & EXP (`/level`): 10 rank dari Newbie (Lv.1) sampai Mythic (Lv.1000). Tamu: localStorage. **Login: EXP disimpan di PostgreSQL** (anti-cheat server-side, sinkron antar perangkat)
+- **Chat Global** (`/chat`): ruang ngobrol semua user — realtime tiap 4 detik (polling), badge role 👑/🛡 + level/rank tiap pengirim, jeda 3 detik/pesan (maks 280 karakter), hapus pesan sendiri (staff bisa hapus siapa pun), otomatis pangkas 500 pesan terbaru. Tamu boleh membaca
 - **Leaderboard** (`/leaderboard`): peringkat EXP harian / 7 hari / 30 hari / semua waktu, medali top 3, sorotan posisi sendiri (EXP dari penyesuaian admin tidak dihitung)
 - **Komentar per episode** di halaman nonton: login untuk menulis (maks 500 karakter, jeda 15 detik), tamu tetap bisa membaca. User bisa hapus komentarnya sendiri; **staff (role admin/owner) bisa menghapus komentar siapa pun** + punya badge 👑/🛡. Setiap komentar menampilkan **badge level & rank** penulisnya (Lv + ikon + warna rank) — siap pamer EXP 😎
 - **Panel Admin** (`/admin`) **satu pintu dengan akun user** (login password/Google) — 2 role: owner & admin: dashboard statistik, manajemen user (adjust EXP, ban, **ubah role** = cara mengangkat admin/owner baru), kontrol konten (pengumuman, anime unggulan, blacklist), konfigurasi rank/event

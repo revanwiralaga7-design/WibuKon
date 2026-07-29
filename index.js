@@ -11,6 +11,7 @@ const setupRoutes = require('./routes')
 const authRoute = require('./routes/auth')
 const apiRoute = require('./routes/api')
 const adminRoute = require('./routes/admin')
+const chatRoute = require('./routes/chat')
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -44,10 +45,11 @@ app.use(express.json())
 // req.authUser/res.locals.authUser untuk semua halaman
 app.use(attachUser)
 
-// Urutan penting: auth/api/admin SEBELUM rute publik (404 handler ada di dalamnya)
+// Urutan penting: auth/api/admin/chat SEBELUM rute publik (404 handler ada di dalamnya)
 app.use('/', authRoute)
 app.use('/api', apiRoute)
 app.use('/admin', adminRoute(mobinime))
+app.use('/chat', chatRoute)
 
 setupRoutes(app, mobinime)
 

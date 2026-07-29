@@ -6,6 +6,7 @@
             <a href="/schedule" class="hover:text-white transition <%= active === 'schedule' ? 'text-white' : '' %>">Jadwal Rilis</a>
             <a href="/bookmarks" class="hover:text-white transition <%= active === 'bookmarks' ? 'text-white' : '' %>">Tersimpan</a>
             <a href="/level" class="hover:text-white transition <%= active === 'level' ? 'text-white' : '' %>">Level</a>
+            <a href="/chat" class="hover:text-white transition <%= active === 'chat' ? 'text-white' : '' %>">Chat</a>
             <a href="/leaderboard" class="hover:text-white transition <%= active === 'leaderboard' ? 'text-white' : '' %>">Peringkat</a>
             <a href="/about" class="hover:text-white transition <%= active === 'about' ? 'text-white' : '' %>">Tentang</a>
         </div>
@@ -88,9 +89,9 @@
             <svg class="w-6 h-6 transition group-active:scale-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21h8m-4-4v4M7 4h10v5a5 5 0 01-10 0V4zM7 6H4a2 2 0 002 4h1m10-4h3a2 2 0 01-2 4h-1"></path></svg>
             <span class="text-[10px] font-medium">Top</span>
         </a>
-        <a href="/about" class="flex flex-col items-center justify-center gap-1 group <%= active === 'about' ? 'active-nav' : 'text-zinc-500' %>">
-            <svg class="w-6 h-6 transition group-active:scale-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <span class="text-[10px] font-medium">Tentang</span>
+        <a href="/chat" class="flex flex-col items-center justify-center gap-1 group <%= active === 'chat' ? 'active-nav' : 'text-zinc-500' %>">
+            <svg class="w-6 h-6 transition group-active:scale-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            <span class="text-[10px] font-medium">Chat</span>
         </a>
     </div>
 </nav>

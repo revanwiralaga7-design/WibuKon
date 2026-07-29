@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('layout/head') %>
+</head>
+<body class="pb-24 md:pb-10 animate-fade">
+    <%- include('layout/navbar') %>
+
+    <main class="container mx-auto max-w-2xl px-3 md:px-4 pt-20 md:pt-24">
+        <header class="mb-4 flex items-center gap-3">
+            <span class="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-900/30 shrink-0">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            </span>
+            <div>
+                <h1 class="text-lg md:text-xl font-black text-white">Chat Global</h1>
+                <p class="text-[11px] md:text-xs text-zinc-500">Ruang ngobrol semua wibu • jaga sopan santun ya</p>
+            </div>
+        </header>
+
+        <% if (flash) { %>
+            <div class="mb-3 text-xs rounded-xl px-4 py-2.5 border <%= flash.err ? 'text-red-300 bg-red-500/10 border-red-500/30' : 'text-green-300 bg-green-500/10 border-green-500/30' %>"><%= flash.err || flash.ok %></div>
+        <% } %>
+
+        <% if (!chatEnabled) { %>
+            <p class="text-center text-xs text-zinc-600 py-10">Chat nonaktif (database belum dikonfigurasi).</p>
+        <% } else { %>
+
+        <section id="chatList" class="rounded-2xl bg-[#0b0c15] border border-white/5 p-3 md:p-4 space-y-4 min-h-[40vh]" aria-label="Pesan chat" aria-live="polite">
+            <% if (messages.length === 0) { %>
+                <p id="chatEmpty" class="text-center text-xs text-zinc-600 py-10">Belum ada pesan. Sapa duluan dong! 👋</p>
+            <% } %>
+            <% messages.forEach(m => { %>
+                <div class="flex gap-2.5 msg" data-mid="<%= m.id %>">
+                    <% if (m.avatar_url) { %><img src="<%= m.avatar_url %>" alt="" class="w-8 h-8 rounded-full object-cover shrink-0" referrerpolicy="no-referrer"><% } else { %><span class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-white text-[11px] font-black shrink-0"><%= m.username.charAt(0).toUpperCase() %></span><% } %>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-xs md:text-sm font-bold <% if (typeof authUser !== 'undefined' && authUser && authUser.id === m.user_id) { %>text-purple-300<% } else { %><%= m.role === 'owner' ? 'text-yellow-300' : (m.role === 'admin' ? 'text-purple-300' : 'text-zinc-200') %><% } %>"><%= m.username %></span>
+                            <% if (m.role === 'owner') { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-500/40">👑 OWNER</span>
+                            <% } else if (m.role === 'admin') { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40">🛡 ADMIN</span><% } %>
+                            <span class="text-[9px] font-black px-1.5 py-0.5 rounded border" style="color: <%= m.lv.rank.color %>; background: <%= m.lv.rank.color %>1a; border-color: <%= m.lv.rank.color %>55" title="<%= m.lv.xp %> EXP"><%= m.lv.rank.icon %> Lv.<%= m.lv.level %> · <%= m.lv.rank.name %></span>
+                            <span class="text-[10px] text-zinc-600"><%= m.rel %></span>
+                            <% if (typeof authUser !== 'undefined' && authUser && (authUser.id === m.user_id || authUser.role === 'owner' || authUser.role === 'admin')) { %>
+                                <form method="POST" action="/chat/<%= m.id %>/delete" onsubmit="return confirm('Hapus pesan ini?')" class="inline">
+                                    <button class="text-[10px] text-zinc-600 hover:text-red-400 transition">hapus</button>
+                                </form>
+                            <% } %>
+                        </div>
+                        <p class="text-xs md:text-sm text-zinc-300 mt-0.5 leading-relaxed break-words"><%= m.body %></p>
+                    </div>
+                </div>
+            <% }) %>
+        </section>
+
+        <button id="newMsgPill" type="button" class="hidden fixed bottom-36 md:bottom-24 left-1/2 -translate-x-1/2 z-40 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg shadow-purple-900/40 transition">↓ Pesan baru</button>
+
+        <div id="kirim" class="sticky bottom-20 md:bottom-4 mt-4">
+            <% if (typeof authUser !== 'undefined' && authUser) { %>
+                <form id="chatForm" method="POST" action="/chat" class="flex gap-2 items-center bg-[#0f0f12] border border-white/10 rounded-2xl p-2 shadow-2xl">
+                    <input id="chatInput" type="text" name="body" maxlength="280" autocomplete="off" required placeholder="Ketik pesan sebagai <%= authUser.username %>..." class="flex-1 bg-transparent px-3 py-2 text-sm text-white focus:outline-none placeholder-zinc-600">
+                    <span id="chatCount" class="text-[10px] text-zinc-600 shrink-0">0/280</span>
+                    <button id="chatSend" class="bg-purple-600 hover:bg-purple-500 active:scale-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shrink-0">Kirim</button>
+                </form>
+                <p id="chatStatus" class="text-[10px] text-zinc-600 mt-1.5 px-1">Enter untuk kirim • maks 280 karakter • jeda 3 detik</p>
+            <% } else { %>
+                <a href="/login?next=%2Fchat" class="block text-center text-xs md:text-sm text-zinc-400 bg-[#0f0f12] border border-white/10 rounded-2xl px-4 py-3.5 hover:bg-white/[0.04] transition">
+                    <span class="text-purple-400 font-bold">Masuk</span> untuk ikut ngobrol
+                </a>
+            <% } %>
+        </div>
+        <% } %>
+    </main>
+
+    <% if (chatEnabled) { %>
+    <script>
+        (function () {
+            var list = document.getElementById('chatList')
+            var pill = document.getElementById('newMsgPill')
+            var form = document.getElementById('chatForm')
+            var input = document.getElementById('chatInput')
+            var status = document.getElementById('chatStatus')
+            var counter = document.getElementById('chatCount')
+
+            // Saya (untuk highlight & tombol hapus) — null jika anon
+            var ME = <%- JSON.stringify((typeof authUser !== 'undefined' && authUser) ? { id: authUser.id, role: authUser.role || 'user' } : null) %>
+            var HEX = /^#[0-9a-fA-F]{6}$/
+
+            var lastId = 0
+            list.querySelectorAll('.msg').forEach(function (el) {
+                lastId = Math.max(lastId, parseInt(el.getAttribute('data-mid')) || 0)
+            })
+
+            function nearBottom() {
+                return (window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 200)
+            }
+            function toBottom() {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+                pill.classList.add('hidden')
+            }
+
+            // Bangun node pesan TANPA innerHTML untuk data user (anti-XSS)
+            function buildNode(m) {
+                var wrap = document.createElement('div')
+                wrap.className = 'flex gap-2.5 msg'
+                wrap.setAttribute('data-mid', m.id)
+
+                var ava
+                if (m.avatar) {
+                    ava = document.createElement('img')
+                    ava.src = m.avatar
+                    ava.alt = ''
+                    ava.referrerPolicy = 'no-referrer'
+                    ava.className = 'w-8 h-8 rounded-full object-cover shrink-0'
+                } else {
+                    ava = document.createElement('span')
+                    ava.className = 'w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-white text-[11px] font-black shrink-0'
+                    ava.textContent = (m.username || '?').charAt(0).toUpperCase()
+                }
+
+                var col = document.createElement('div')
+                col.className = 'flex-1 min-w-0'
+                var head = document.createElement('div')
+                head.className = 'flex items-center gap-1.5 flex-wrap'
+
+                var name = document.createElement('span')
+                var ownMsg = ME && ME.id === m.userId
+                name.className = 'text-xs md:text-sm font-bold ' + (ownMsg ? 'text-purple-300' : (m.role === 'owner' ? 'text-yellow-300' : (m.role === 'admin' ? 'text-purple-300' : 'text-zinc-200')))
+                name.textContent = m.username
+                head.appendChild(name)
+
+                if (m.role === 'owner' || m.role === 'admin') {
+                    var rb = document.createElement('span')
+                    rb.className = m.role === 'owner'
+                        ? 'text-[9px] font-black px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-500/40'
+                        : 'text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                    rb.textContent = m.role === 'owner' ? '👑 OWNER' : '🛡 ADMIN'
+                    head.appendChild(rb)
+                }
+
+                var lb = document.createElement('span')
+                lb.className = 'text-[9px] font-black px-1.5 py-0.5 rounded border'
+                if (m.lv && HEX.test(m.lv.color || '')) {
+                    lb.style.color = m.lv.color
+                    lb.style.background = m.lv.color + '1a'
+                    lb.style.borderColor = m.lv.color + '55'
+                    lb.title = (m.lv.xp || 0) + ' EXP'
+                }
+                lb.textContent = m.lv ? (m.lv.icon + ' Lv.' + m.lv.level + ' · ' + m.lv.name) : 'Lv.1'
+                head.appendChild(lb)
+
+                var time = document.createElement('span')
+                time.className = 'text-[10px] text-zinc-600'
+                time.textContent = m.rel || ''
+                head.appendChild(time)
+
+                if (ME && (ownMsg || ME.role === 'owner' || ME.role === 'admin')) {
+                    var del = document.createElement('form')
+                    del.method = 'POST'
+                    del.action = '/chat/' + m.id + '/delete'
+                    del.className = 'inline'
+                    del.onsubmit = function () { return confirm('Hapus pesan ini?') }
+                    var db2 = document.createElement('button')
+                    db2.className = 'text-[10px] text-zinc-600 hover:text-red-400 transition'
+                    db2.textContent = 'hapus'
+                    del.appendChild(db2)
+                    head.appendChild(del)
+                }
+
+                var body = document.createElement('p')
+                body.className = 'text-xs md:text-sm text-zinc-300 mt-0.5 leading-relaxed break-words'
+                body.textContent = m.body
+
+                col.appendChild(head)
+                col.appendChild(body)
+                wrap.appendChild(ava)
+                wrap.appendChild(col)
+                return wrap
+            }
+
+            var polling = false
+            function poll() {
+                if (polling || !window.fetch) return
+                polling = true
+                var stick = nearBottom()
+                fetch('/chat/api?after=' + lastId)
+                    .then(function (r) { return r.json() })
+                    .then(function (d) {
+                        if (!d || !d.ok || !d.messages.length) return
+                        var empty = document.getElementById('chatEmpty')
+                        if (empty) empty.remove()
+                        d.messages.forEach(function (m) {
+                            list.appendChild(buildNode(m))
+                            lastId = Math.max(lastId, m.id)
+                        })
+                        if (stick) toBottom()
+                        else pill.classList.remove('hidden')
+                    })
+                    .catch(function () {})
+                    .finally(function () { polling = false })
+            }
+
+            pill.addEventListener('click', toBottom)
+            window.addEventListener('scroll', function () { if (nearBottom()) pill.classList.add('hidden') })
+
+            if (form) {
+                input.addEventListener('input', function () {
+                    counter.textContent = input.value.length + '/280'
+                })
+                form.addEventListener('submit', function (ev) {
+                    if (!window.fetch) return // browser jadul -> submit biasa
+                    ev.preventDefault()
+                    var text = input.value
+                    if (!text.trim()) return
+                    status.textContent = 'Mengirim...'
+                    status.className = 'text-[10px] text-zinc-500 mt-1.5 px-1'
+                    fetch('/chat/api', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ body: text })
+                    }).then(function (r) { return r.json() }).then(function (d) {
+                        if (d && d.ok) {
+                            input.value = ''
+                            counter.textContent = '0/280'
+                            status.textContent = 'Enter untuk kirim • maks 280 karakter • jeda 3 detik'
+                            status.className = 'text-[10px] text-zinc-600 mt-1.5 px-1'
+                            toBottom()
+                            poll()
+                        } else {
+                            status.textContent = (d && d.reason) || 'Gagal mengirim'
+                            status.className = 'text-[10px] text-red-400 mt-1.5 px-1'
+                        }
+                    }).catch(function () {
+                        status.textContent = 'Koneksi bermasalah — pesan belum terkirim'
+                        status.className = 'text-[10px] text-red-400 mt-1.5 px-1'
+                    })
+                })
+            }
+
+            // Mulai: scroll ke pesan terbaru + polling tiap 4 detik
+            window.scrollTo(0, document.body.scrollHeight)
+            setInterval(poll, 4000)
+        })()
+    </script>
+    <% } %>
+</body>
+</html>
