@@ -18,7 +18,11 @@ router.get('/level/state', async (req, res) => {
         const u = req.authUser
         const state = levels.stateFor(cfg.ranks, u.xp)
         const history = db.enabled() ? await store.recentXpEvents(u.id, 20) : []
-        res.json({ ...base, user: { id: u.id, username: u.username, role: u.role || 'user' }, state, history })
+        res.json({
+            ...base,
+            user: { id: u.id, username: u.username, role: u.role || 'user', vip: store.isVip(u), vipUntil: u.vip_until || null },
+            state, history
+        })
     } catch (e) {
         res.status(500).json({ user: null, error: 'server_error' })
     }

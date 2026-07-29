@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('_head', { title: 'VIP' }) %>
+</head>
+<body>
+    <%- include('_nav', { admin, section }) %>
+
+    <main class="max-w-5xl mx-auto p-4 md:p-8 space-y-8">
+        <h1 class="text-xl md:text-2xl font-black text-white">💎 Kelola VIP</h1>
+
+        <% if (flash && flash.ok) { %><div class="flash-ok"><%= flash.ok %></div><% } %>
+        <% if (flash && flash.err) { %><div class="flash-err"><%= flash.err %></div><% } %>
+
+        <section class="card rounded-2xl p-5">
+            <h2 class="font-bold text-white mb-1">⏳ Permintaan Masuk (donasi)</h2>
+            <p class="text-xs text-zinc-500 mb-4">Approve = VIP 30 hari (menumpuk bila user masih punya sisa hari aktif). Cek manual bukti donasinya ya!</p>
+
+            <% const pending = requests.filter(r => r.status === 'pending') %>
+            <% if (pending.length) { %>
+                <div class="space-y-3">
+                    <% pending.forEach(r => { %>
+                        <div class="rounded-xl bg-amber-500/[0.05] border border-amber-500/20 p-4">
+                            <div class="flex flex-wrap items-center justify-between gap-3">
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <a href="/admin/users/<%= r.user_id %>" class="text-sm font-bold text-white hover:text-purple-300"><%= r.username %></a>
+                                        <span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30"><%= r.via %></span>
+                                        <span class="text-[10px] text-zinc-600"><%= new Date(r.created_at).toLocaleString('id-ID') %></span>
+                                    </div>
+                                    <p class="text-xs text-zinc-400 mt-1.5 break-words"><%= r.proof %></p>
+                                </div>
+                                <div class="flex gap-2 shrink-0">
+                                    <form method="POST" action="/admin/vip/<%= r.id %>/approve" onsubmit="return confirm('Approve VIP 30 hari untuk <%= r.username %>?')">
+                                        <button class="btn text-xs px-3 py-2">✓ Approve 30 hari</button>
+                                    </form>
+                                    <form method="POST" action="/admin/vip/<%= r.id %>/reject" onsubmit="return confirm('Tolak permintaan ini?')">
+                                        <button class="btn btn-red text-xs px-3 py-2">✗ Tolak</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <p class="text-sm text-zinc-500 py-3 text-center">Tidak ada permintaan pending 🎉</p>
+            <% } %>
+
+            <% const done = requests.filter(r => r.status !== 'pending').slice(0, 10) %>
+            <% if (done.length) { %>
+                <details class="mt-4">
+                    <summary class="text-xs text-zinc-500 cursor-pointer hover:text-white">Riwayat diproses (<%= done.length %>)</summary>
+                    <div class="mt-2 divide-y divide-white/5">
+                        <% done.forEach(r => { %>
+                            <div class="py-2 flex justify-between items-center text-xs">
+                                <span class="text-zinc-400"><b class="text-zinc-200"><%= r.username %></b> · <%= r.via %> · <span class="text-zinc-600"><%= new Date(r.created_at).toLocaleDateString('id-ID') %></span></span>
+                                <span class="font-bold <%= r.status === 'approved' ? 'text-green-400' : 'text-red-400' %>"><%= r.status === 'approved' ? '✓ approved' : '✗ rejected' %></span>
+                            </div>
+                        <% }) %>
+                    </div>
+                </details>
+            <% } %>
+        </section>
+
+        <section class="card rounded-2xl p-5">
+            <h2 class="font-bold text-white mb-1">💎 VIP Aktif (<%= actives.length %>)</h2>
+            <p class="text-xs text-zinc-500 mb-4">Atur permanen/30 hari/cabut dari halaman detail user, atau langsung dari sini.</p>
+            <% if (actives.length) { %>
+                <div class="divide-y divide-white/5">
+                    <% actives.forEach(u => { %>
+                        <div class="py-2.5 flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <a href="/admin/users/<%= u.id %>" class="text-sm font-bold text-white hover:text-purple-300 truncate"><%= u.username %></a>
+                                <% if (u.vip) { %><span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">PERMANEN</span>
+                                <% } else { %><span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">s/d <%= u.vip_until ? new Date(u.vip_until).toLocaleDateString('id-ID') : '-' %></span><% } %>
+                            </div>
+                            <div class="flex gap-2 shrink-0">
+                                <% if (!u.vip) { %>
+                                    <form method="POST" action="/admin/users/<%= u.id %>/vip"><input type="hidden" name="kind" value="days30"><button class="text-[11px] text-cyan-400 hover:text-cyan-300">+30 hari</button></form>
+                                    <form method="POST" action="/admin/users/<%= u.id %>/vip"><input type="hidden" name="kind" value="permanent"><button class="text-[11px] text-amber-400 hover:text-amber-300">jadikan permanen</button></form>
+                                <% } %>
+                                <form method="POST" action="/admin/users/<%= u.id %>/vip" onsubmit="return confirm('Cabut VIP <%= u.username %>?')"><input type="hidden" name="kind" value="revoke"><button class="text-[11px] text-red-400 hover:text-red-300">cabut</button></form>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <p class="text-sm text-zinc-500 py-3 text-center">Belum ada user VIP.</p>
+            <% } %>
+        </section>
+    </main>
+</body>
+</html>

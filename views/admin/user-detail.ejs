@@ -50,6 +50,18 @@
                     </button>
                 </form>
 
+                <div class="border-t border-white/5 pt-4">
+                    <h2 class="font-bold text-white mb-1">💎 Status VIP</h2>
+                    <p class="text-[11px] text-zinc-500 mb-3">
+                        <% if (user.vip) { %>Sekarang: <b class="text-amber-300">VIP PERMANEN</b><% } else if (user.vip_until && new Date(user.vip_until).getTime() > Date.now()) { %>Sekarang: <b class="text-cyan-300">VIP sampai <%= new Date(user.vip_until).toLocaleString('id-ID') %></b><% } else { %>Sekarang: <b class="text-zinc-400">bukan VIP</b><% } %>
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <form method="POST" action="/admin/users/<%= user.id %>/vip"><input type="hidden" name="kind" value="days30"><button class="btn btn-gray text-xs px-3 py-2">+ VIP 30 hari</button></form>
+                        <form method="POST" action="/admin/users/<%= user.id %>/vip"><input type="hidden" name="kind" value="permanent"><button class="btn text-xs px-3 py-2">VIP Permanen</button></form>
+                        <form method="POST" action="/admin/users/<%= user.id %>/vip" onsubmit="return confirm('Cabut VIP user ini?')"><input type="hidden" name="kind" value="revoke"><button class="btn btn-red text-xs px-3 py-2">Cabut VIP</button></form>
+                    </div>
+                </div>
+
                 <% if (admin.role === 'owner') { %>
                 <div class="border-t border-white/5 pt-4">
                     <h2 class="font-bold text-white mb-1">Role Publik (command komentar & badge)</h2>

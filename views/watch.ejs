@@ -78,9 +78,9 @@
                         <div class="flex gap-3">
                             <% if (authUser.avatar_url) { %><img src="<%= authUser.avatar_url %>" alt="" class="w-9 h-9 rounded-full object-cover shrink-0" referrerpolicy="no-referrer"><% } else { %><span class="w-9 h-9 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-black shrink-0"><%= authUser.username.charAt(0).toUpperCase() %></span><% } %>
                             <div class="flex-1">
-                                <textarea name="body" rows="2" maxlength="500" required placeholder="Tulis komentar sebagai <%= authUser.username %><%= typeof authLv !== 'undefined' && authLv ? ' — Lv.' + authLv.level + ' ' + authLv.rank.icon + ' ' + authLv.rank.name : '' %>..." class="w-full bg-zinc-800/70 border border-white/10 rounded-xl px-4 py-3 text-sm text-white resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-zinc-600"></textarea>
+                                <textarea name="body" rows="2" maxlength="<%= typeof commentMax !== 'undefined' ? commentMax : 500 %>" required placeholder="Tulis komentar sebagai <%= authUser.username %><%= typeof authLv !== 'undefined' && authLv ? ' — Lv.' + authLv.level + ' ' + authLv.rank.icon + ' ' + authLv.rank.name : '' %>..." class="w-full bg-zinc-800/70 border border-white/10 rounded-xl px-4 py-3 text-sm text-white resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-zinc-600"></textarea>
                                 <div class="flex justify-between items-center mt-2">
-                                    <span class="text-[10px] text-zinc-600">maks 500 karakter · jeda 15 detik antar komentar</span>
+                                    <span class="text-[10px] text-zinc-600">maks <%= typeof commentMax !== 'undefined' ? commentMax : 500 %> karakter · jeda <%= typeof commentRate !== 'undefined' ? commentRate : 15 %> detik antar komentar<% if ((typeof commentMax !== 'undefined' ? commentMax : 500) > 500) { %> <span class="text-amber-400 font-bold">💎 dilonggarkan VIP</span><% } %></span>
                                     <button class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-5 py-2 rounded-full transition active:scale-95">Kirim</button>
                                 </div>
                             </div>
@@ -96,12 +96,13 @@
                     <div class="space-y-4">
                         <% comments.forEach(c => { %>
                             <div class="flex gap-3">
-                                <% if (c.avatar_url) { %><img src="<%= c.avatar_url %>" alt="" class="w-9 h-9 rounded-full object-cover shrink-0" referrerpolicy="no-referrer"><% } else { %><span class="w-9 h-9 rounded-full bg-zinc-700 flex items-center justify-center text-white text-xs font-black shrink-0"><%= c.username.charAt(0).toUpperCase() %></span><% } %>
+                                <% if (c.avatar_url) { %><img src="<%= c.avatar_url %>" alt="" class="w-9 h-9 rounded-full object-cover shrink-0 <%= c.isVip ? 'vip-frame' : '' %>" referrerpolicy="no-referrer"><% } else { %><span class="w-9 h-9 rounded-full bg-zinc-700 flex items-center justify-center text-white text-xs font-black shrink-0 <%= c.isVip ? 'vip-frame' : '' %>"><%= c.username.charAt(0).toUpperCase() %></span><% } %>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <span class="text-xs md:text-sm font-bold <%= c.role === 'owner' ? 'text-yellow-300' : (c.role === 'admin' ? 'text-purple-300' : 'text-zinc-200') %>"><%= c.username %></span>
+                                        <span class="text-xs md:text-sm font-bold <%= c.isVip ? 'vip-name' : (c.role === 'owner' ? 'text-yellow-300' : (c.role === 'admin' ? 'text-purple-300' : 'text-zinc-200')) %>"><%= c.username %></span>
                                         <% if (c.role === 'owner') { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-500/40">👑 OWNER</span>
                                         <% } else if (c.role === 'admin') { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40">🛡 ADMIN</span><% } %>
+                                        <% if (c.isVip) { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">💎 VIP</span><% } %>
                                         <% if (typeof c.lv !== 'undefined' && c.lv) { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded border" style="color: <%= c.lv.rank.color %>; background: <%= c.lv.rank.color %>1a; border-color: <%= c.lv.rank.color %>55" title="<%= c.lv.xp %> EXP"><%= c.lv.rank.icon %> Lv.<%= c.lv.level %> · <%= c.lv.rank.name %></span><% } %>
                                         <span class="text-[10px] text-zinc-600"><%= c.rel %></span>
                                         <% if (typeof authUser !== 'undefined' && authUser && (authUser.id === c.user_id || authUser.role === 'owner' || authUser.role === 'admin')) { %>

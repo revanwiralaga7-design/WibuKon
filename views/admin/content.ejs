@@ -49,6 +49,16 @@
             <% } %>
         </section>
 
+        <section class="card rounded-2xl p-5 border-amber-500/20">
+            <h2 class="font-bold text-white mb-1">💎 Info Donasi di Halaman /vip</h2>
+            <p class="text-xs text-zinc-500 mb-4">Teks ini tampil di atas form permintaan VIP. Isi link Trakteer/Saweria/nomor e-wallet kamu di sini.</p>
+            <form method="POST" action="/admin/content" class="space-y-3">
+                <input type="hidden" name="form" value="vipinfo">
+                <textarea name="text" rows="3" class="input" maxlength="500" placeholder="contoh: Donasi via https://trakteer.id/username ..."><%= cfg.vipInfo || '' %></textarea>
+                <button class="btn">Simpan Info Donasi</button>
+            </form>
+        </section>
+
         <section class="card rounded-2xl p-5 border-red-500/20">
             <h2 class="font-bold text-white mb-1">🚫 Blacklist Anime</h2>
             <p class="text-xs text-zinc-500 mb-4">Anime dengan ID ini <b>disembunyikan</b> dari beranda, jadwal, dan pencarian; halaman detail & nontonnya jadi 404. Karena data masuk cache beberapa menit, efeknya tidak instan (maks ±5 menit).</p>

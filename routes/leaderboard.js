@@ -31,6 +31,7 @@ router.get('/', async (req, res) => {
         } else {
             rows = await store.topSince(sinceDay(period.days), TOP)
         }
+        rows = rows.map(r => ({ ...r, isVip: store.isVip(r) }))
 
         if (req.authUser) {
             const u = req.authUser

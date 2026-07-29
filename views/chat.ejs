@@ -31,12 +31,13 @@
             <% } %>
             <% messages.forEach(m => { %>
                 <div class="flex gap-2.5 msg" data-mid="<%= m.id %>">
-                    <% if (m.avatar_url) { %><img src="<%= m.avatar_url %>" alt="" class="w-8 h-8 rounded-full object-cover shrink-0" referrerpolicy="no-referrer"><% } else { %><span class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-white text-[11px] font-black shrink-0"><%= m.username.charAt(0).toUpperCase() %></span><% } %>
+                    <% if (m.avatar_url) { %><img src="<%= m.avatar_url %>" alt="" class="w-8 h-8 rounded-full object-cover shrink-0 <%= m.isVip ? 'vip-frame' : '' %>" referrerpolicy="no-referrer"><% } else { %><span class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-white text-[11px] font-black shrink-0 <%= m.isVip ? 'vip-frame' : '' %>"><%= m.username.charAt(0).toUpperCase() %></span><% } %>
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="text-xs md:text-sm font-bold <% if (typeof authUser !== 'undefined' && authUser && authUser.id === m.user_id) { %>text-purple-300<% } else { %><%= m.role === 'owner' ? 'text-yellow-300' : (m.role === 'admin' ? 'text-purple-300' : 'text-zinc-200') %><% } %>"><%= m.username %></span>
+                            <span class="text-xs md:text-sm font-bold <%= m.isVip ? 'vip-name' : ((typeof authUser !== 'undefined' && authUser && authUser.id === m.user_id) ? 'text-purple-300' : (m.role === 'owner' ? 'text-yellow-300' : (m.role === 'admin' ? 'text-purple-300' : 'text-zinc-200'))) %>"><%= m.username %></span>
                             <% if (m.role === 'owner') { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-500/40">👑 OWNER</span>
                             <% } else if (m.role === 'admin') { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40">🛡 ADMIN</span><% } %>
+                            <% if (m.isVip) { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">💎 VIP</span><% } %>
                             <span class="text-[9px] font-black px-1.5 py-0.5 rounded border" style="color: <%= m.lv.rank.color %>; background: <%= m.lv.rank.color %>1a; border-color: <%= m.lv.rank.color %>55" title="<%= m.lv.xp %> EXP"><%= m.lv.rank.icon %> Lv.<%= m.lv.level %> · <%= m.lv.rank.name %></span>
                             <span class="text-[10px] text-zinc-600"><%= m.rel %></span>
                             <% if (typeof authUser !== 'undefined' && authUser && (authUser.id === m.user_id || authUser.role === 'owner' || authUser.role === 'admin')) { %>
@@ -56,11 +57,11 @@
         <div id="kirim" class="sticky bottom-20 md:bottom-4 mt-4">
             <% if (typeof authUser !== 'undefined' && authUser) { %>
                 <form id="chatForm" method="POST" action="/chat" class="flex gap-2 items-center bg-[#0f0f12] border border-white/10 rounded-2xl p-2 shadow-2xl">
-                    <input id="chatInput" type="text" name="body" maxlength="280" autocomplete="off" required placeholder="Ketik pesan sebagai <%= authUser.username %>..." class="flex-1 bg-transparent px-3 py-2 text-sm text-white focus:outline-none placeholder-zinc-600">
-                    <span id="chatCount" class="text-[10px] text-zinc-600 shrink-0">0/280</span>
+                    <input id="chatInput" type="text" name="body" maxlength="<%= maxBody %>" autocomplete="off" required placeholder="Ketik pesan sebagai <%= authUser.username %>..." class="flex-1 bg-transparent px-3 py-2 text-sm text-white focus:outline-none placeholder-zinc-600">
+                    <span id="chatCount" class="text-[10px] text-zinc-600 shrink-0">0/<%= maxBody %></span>
                     <button id="chatSend" class="bg-purple-600 hover:bg-purple-500 active:scale-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shrink-0">Kirim</button>
                 </form>
-                <p id="chatStatus" class="text-[10px] text-zinc-600 mt-1.5 px-1">Enter untuk kirim • maks 280 karakter • jeda 3 detik</p>
+                <p id="chatStatus" class="text-[10px] text-zinc-600 mt-1.5 px-1">Enter untuk kirim • maks <%= maxBody %> karakter • jeda <%= rateSec %> detik<% if (maxBody > 280) { %> <span class="text-amber-400 font-bold">💎 VIP</span><% } %></p>
             <% } else { %>
                 <a href="/login?next=%2Fchat" class="block text-center text-xs md:text-sm text-zinc-400 bg-[#0f0f12] border border-white/10 rounded-2xl px-4 py-3.5 hover:bg-white/[0.04] transition">
                     <span class="text-purple-400 font-bold">Masuk</span> untuk ikut ngobrol
@@ -82,6 +83,8 @@
 
             // Saya (untuk highlight & tombol hapus) — null jika anon
             var ME = <%- JSON.stringify((typeof authUser !== 'undefined' && authUser) ? { id: authUser.id, role: authUser.role || 'user' } : null) %>
+            var MAXB = <%= typeof maxBody !== 'undefined' ? maxBody : 280 %>
+            var STATUS_DEFAULT = status ? status.textContent : ''
             var HEX = /^#[0-9a-fA-F]{6}$/
 
             var lastId = 0
@@ -104,15 +107,16 @@
                 wrap.setAttribute('data-mid', m.id)
 
                 var ava
+                var frame = m.vip ? ' vip-frame' : ''
                 if (m.avatar) {
                     ava = document.createElement('img')
                     ava.src = m.avatar
                     ava.alt = ''
                     ava.referrerPolicy = 'no-referrer'
-                    ava.className = 'w-8 h-8 rounded-full object-cover shrink-0'
+                    ava.className = 'w-8 h-8 rounded-full object-cover shrink-0' + frame
                 } else {
                     ava = document.createElement('span')
-                    ava.className = 'w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-white text-[11px] font-black shrink-0'
+                    ava.className = 'w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-white text-[11px] font-black shrink-0' + frame
                     ava.textContent = (m.username || '?').charAt(0).toUpperCase()
                 }
 
@@ -123,7 +127,7 @@
 
                 var name = document.createElement('span')
                 var ownMsg = ME && ME.id === m.userId
-                name.className = 'text-xs md:text-sm font-bold ' + (ownMsg ? 'text-purple-300' : (m.role === 'owner' ? 'text-yellow-300' : (m.role === 'admin' ? 'text-purple-300' : 'text-zinc-200')))
+                name.className = 'text-xs md:text-sm font-bold ' + (m.vip ? 'vip-name' : (ownMsg ? 'text-purple-300' : (m.role === 'owner' ? 'text-yellow-300' : (m.role === 'admin' ? 'text-purple-300' : 'text-zinc-200'))))
                 name.textContent = m.username
                 head.appendChild(name)
 
@@ -134,6 +138,13 @@
                         : 'text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40'
                     rb.textContent = m.role === 'owner' ? '👑 OWNER' : '🛡 ADMIN'
                     head.appendChild(rb)
+                }
+
+                if (m.vip) {
+                    var vb = document.createElement('span')
+                    vb.className = 'text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                    vb.textContent = '💎 VIP'
+                    head.appendChild(vb)
                 }
 
                 var lb = document.createElement('span')
@@ -203,7 +214,7 @@
 
             if (form) {
                 input.addEventListener('input', function () {
-                    counter.textContent = input.value.length + '/280'
+                    counter.textContent = input.value.length + '/' + MAXB
                 })
                 form.addEventListener('submit', function (ev) {
                     if (!window.fetch) return // browser jadul -> submit biasa
@@ -219,8 +230,8 @@
                     }).then(function (r) { return r.json() }).then(function (d) {
                         if (d && d.ok) {
                             input.value = ''
-                            counter.textContent = '0/280'
-                            status.textContent = 'Enter untuk kirim • maks 280 karakter • jeda 3 detik'
+                            counter.textContent = '0/' + MAXB
+                            status.textContent = STATUS_DEFAULT
                             status.className = 'text-[10px] text-zinc-600 mt-1.5 px-1'
                             toBottom()
                             poll()

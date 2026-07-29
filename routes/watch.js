@@ -59,11 +59,13 @@ module.exports = (mobinime) => {
                 anime: detailData,
                 currentEps: epsId,
                 active: 'home',
-                // Badge level tiap komentator -> bisa pamer rank di kolom komentar
-                comments: comments.map(c => ({ ...c, rel: rel(c.created_at), lv: levels.stateFor(cfg.ranks, c.xp || 0) })),
+                // Badge level + VIP tiap komentator -> bisa pamer di kolom komentar
+                comments: comments.map(c => ({ ...c, rel: rel(c.created_at), lv: levels.stateFor(cfg.ranks, c.xp || 0), isVip: store.isVip(c) })),
                 commentCount,
                 commentsEnabled: db.enabled(),
                 authLv: req.authUser ? levels.stateFor(cfg.ranks, req.authUser.xp || 0) : null,
+                commentMax: store.isVip(req.authUser) ? 1000 : 500,
+                commentRate: store.isVip(req.authUser) ? 5 : 15,
                 komenOk: req.query.ok || null,
                 komenErr: req.query.err || null
             })
@@ -83,16 +85,18 @@ module.exports = (mobinime) => {
             return res.redirect('/login?next=' + encodeURIComponent(`/watch/${req.params.animeSlug}/${req.params.epsSlug}`))
         }
 
+        // VIP: komentar lebih panjang & jeda lebih singkat (benefit Paket Sultan)
+        const lim = store.isVip(req.authUser) ? { ms: 5000, max: 1000 } : { ms: 15000, max: 500 }
         const body = String(req.body.body || '').replace(/\s+/g, ' ').trim()
-        if (body.length < 1 || body.length > 500) {
-            return res.redirect(back('?err=' + encodeURIComponent('Komentar 1-500 karakter')))
+        if (body.length < 1 || body.length > lim.max) {
+            return res.redirect(back('?err=' + encodeURIComponent(`Komentar 1-${lim.max} karakter`)))
         }
 
         try {
-            // Batasi: maksimal 1 komentar per 15 detik per user
+            // Batasi: 1 komentar per N detik per user (VIP lebih singkat)
             const last = await store.lastCommentAt(req.authUser.id)
-            if (last && Date.now() - new Date(last).getTime() < 15000) {
-                return res.redirect(back('?err=' + encodeURIComponent('Terlalu cepat — tunggu 15 detik antar komentar')))
+            if (last && Date.now() - new Date(last).getTime() < lim.ms) {
+                return res.redirect(back('?err=' + encodeURIComponent(`Terlalu cepat — tunggu ${lim.ms / 1000} detik antar komentar`)))
             }
             await store.addComment(req.authUser.id, ids.animeId, ids.epsId, body)
             res.redirect(back('?ok=' + encodeURIComponent('Komentar terkirim')))

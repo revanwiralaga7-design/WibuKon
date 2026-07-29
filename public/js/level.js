@@ -239,6 +239,8 @@ window.WibuLevel = (function () {
                 if (d && d.user && d.state) {
                     MODE = 'server'
                     serverUser = d.user
+                    // Kapasitas penyimpanan lokal jumbo untuk VIP (benefit)
+                    if (window.WibuStore && WibuStore.setVip) WibuStore.setVip(!!d.user.vip)
                     var st = d.state
                     serverState = canon(st.rank, { level: st.level, into: st.into, need: st.need }, st.xp)
                     serverHistory = (Array.isArray(d.history) ? d.history : []).map(function (h) {

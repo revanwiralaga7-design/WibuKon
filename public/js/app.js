@@ -4,10 +4,16 @@ window.WibuStore = (function () {
     var CONTINUE_KEY = 'wibukonContinue'
     var BOOKMARK_KEY = 'wibukonBookmarks'
     var WATCHED_KEY = 'wibukonWatched'
-    var MAX_CONTINUE = 12      // maks entri lanjutkan nonton
-    var MAX_BOOKMARK = 100     // maks entri bookmark
+    var MAX_CONTINUE = 12      // maks entri lanjutkan nonton (VIP: 50)
+    var MAX_BOOKMARK = 100     // maks entri bookmark (VIP: 500)
     var MAX_WATCHED_ANIME = 100  // maks anime yang riwayat episodenya disimpan (LRU)
     var MAX_WATCHED_EPS = 1500   // maks episode per anime (anime sepanjang One Piece pun muat)
+
+    // Mode VIP: kapasitas penyimpanan lokal dibesarkan (diset lewat setVip)
+    var vipMode = false
+    function setVip(on) { vipMode = !!on }
+    function maxContinue() { return vipMode ? 50 : MAX_CONTINUE }
+    function maxBookmark() { return vipMode ? 500 : MAX_BOOKMARK }
 
     function read(key) {
         try { return JSON.parse(localStorage.getItem(key)) || [] } catch (e) { return [] }
@@ -58,13 +64,13 @@ window.WibuStore = (function () {
             if (newN > 0 && prevN > 0 && newN < prevN) {
                 prev.updatedAt = Date.now()
                 list.unshift(prev)
-                write(CONTINUE_KEY, list.slice(0, MAX_CONTINUE))
+                write(CONTINUE_KEY, list.slice(0, maxContinue()))
                 return
             }
         }
         item.updatedAt = Date.now()
         list.unshift(item)
-        write(CONTINUE_KEY, list.slice(0, MAX_CONTINUE))
+        write(CONTINUE_KEY, list.slice(0, maxContinue()))
     }
 
     function removeContinue(animeId) {
@@ -96,7 +102,7 @@ window.WibuStore = (function () {
         var list = read(BOOKMARK_KEY)
         item.addedAt = Date.now()
         list.unshift(item)
-        write(BOOKMARK_KEY, list.slice(0, MAX_BOOKMARK))
+        write(BOOKMARK_KEY, list.slice(0, maxBookmark()))
         return true
     }
 
@@ -230,6 +236,7 @@ window.WibuStore = (function () {
         getWatched: getWatched,
         isWatched: isWatched,
         syncWatched: syncWatched,
-        pushWatched: pushWatched
+        pushWatched: pushWatched,
+        setVip: setVip
     }
 })()

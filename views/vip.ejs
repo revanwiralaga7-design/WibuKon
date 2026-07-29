@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <%- include('layout/head') %>
+</head>
+<body class="pb-24 md:pb-10 animate-fade">
+    <%- include('layout/navbar') %>
+
+    <main class="container mx-auto max-w-2xl px-4 pt-20 md:pt-24">
+        <!-- HERO -->
+        <header class="relative overflow-hidden rounded-3xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-[#0b0c15] to-purple-900/20 p-6 md:p-8 text-center mb-6">
+            <div class="text-5xl mb-3">💎</div>
+            <h1 class="text-2xl md:text-3xl font-black mb-2">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-300">WibuKon VIP</span>
+            </h1>
+            <p class="text-xs md:text-sm text-zinc-400">Dukung server tetap hidup ☕ + dapatkan pengalaman sultan</p>
+        </header>
+
+        <% if (flash) { %>
+            <div class="mb-4 text-xs rounded-xl px-4 py-2.5 border <%= flash.err ? 'text-red-300 bg-red-500/10 border-red-500/30' : 'text-green-300 bg-green-500/10 border-green-500/30' %>"><%= flash.err || flash.ok %></div>
+        <% } %>
+
+        <!-- STATUS USER -->
+        <% if (typeof authUser !== 'undefined' && authUser) { %>
+            <section class="mb-6 rounded-2xl border p-4 md:p-5 <%= isVipNow ? 'border-amber-500/40 bg-amber-500/[0.06]' : 'border-white/10 bg-[#0b0c15]' %>">
+                <% if (isVipNow) { %>
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">💎</span>
+                        <div>
+                            <p class="text-sm md:text-base font-black text-amber-300">VIP AKTIF — kamu sultan! 🔥</p>
+                            <p class="text-[11px] md:text-xs text-zinc-400">
+                                <% if (vipKind === 'permanent') { %>Jenis: <b class="text-amber-200">PERMANEN</b> — selamanya 😎
+                                <% } else { %>Aktif sampai: <b class="text-amber-200"><%= vipUntil ? new Date(vipUntil).toLocaleString('id-ID') : '-' %></b><% } %>
+                            </p>
+                        </div>
+                    </div>
+                <% } else if (pending) { %>
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">⏳</span>
+                        <div>
+                            <p class="text-sm md:text-base font-black text-white">Permintaan sedang ditinjau</p>
+                            <p class="text-[11px] md:text-xs text-zinc-500">via <%= pending.via %> · dikirim <%= new Date(pending.created_at).toLocaleString('id-ID') %> · sabar ya, dicek admin manual</p>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <p class="text-xs md:text-sm text-zinc-400 text-center">Akun kamu (<b class="text-white"><%= authUser.username %></b>) belum VIP — yuk naik kelas 👇</p>
+                <% } %>
+            </section>
+        <% } %>
+
+        <!-- BENEFIT -->
+        <section class="mb-6">
+            <h2 class="text-sm md:text-base font-bold text-white mb-3">✨ Benefit Paket Sultan</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="rounded-2xl bg-[#0b0c15] border border-white/5 p-4">
+                    <div class="text-2xl mb-1">💎</div>
+                    <h3 class="text-sm font-bold text-white">Badge VIP + Nama Glow</h3>
+                    <p class="text-[11px] text-zinc-500 mt-0.5">Badge 💎 VIP & username gradasi emas animasi di komentar, chat global & leaderboard, plus bingkai avatar emas</p>
+                </div>
+                <div class="rounded-2xl bg-[#0b0c15] border border-white/5 p-4">
+                    <div class="text-2xl mb-1">⚡</div>
+                    <h3 class="text-sm font-bold text-white">EXP Boost 2x</h3>
+                    <p class="text-[11px] text-zinc-500 mt-0.5">SEMUA event EXP (nonton, harian, bookmark, search) digandakan — naik rank 2x lebih cepat</p>
+                </div>
+                <div class="rounded-2xl bg-[#0b0c15] border border-white/5 p-4">
+                    <div class="text-2xl mb-1">💬</div>
+                    <h3 class="text-sm font-bold text-white">Chat & Komentar Longgar</h3>
+                    <p class="text-[11px] text-zinc-500 mt-0.5">Chat 3 dtk → <b class="text-amber-300">1 dtk</b> & 280 → <b class="text-amber-300">500 karakter</b> · komentar 15 dtk → <b class="text-amber-300">5 dtk</b> & 500 → <b class="text-amber-300">1000 karakter</b></p>
+                </div>
+                <div class="rounded-2xl bg-[#0b0c15] border border-white/5 p-4">
+                    <div class="text-2xl mb-1">📦</div>
+                    <h3 class="text-sm font-bold text-white">Penyimpanan Jumbo</h3>
+                    <p class="text-[11px] text-zinc-500 mt-0.5">Lanjutkan Nonton 12 → <b class="text-amber-300">50</b> anime · Bookmark 100 → <b class="text-amber-300">500</b> anime</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FORM PERMINTAAN -->
+        <% if (!dbOn) { %>
+            <p class="text-center text-xs text-zinc-600 py-6">VIP nonaktif (database belum dikonfigurasi).</p>
+        <% } else if (typeof authUser === 'undefined' || !authUser) { %>
+            <a href="/login?next=%2Fvip" class="block text-center text-xs md:text-sm text-zinc-400 bg-[#0f0f12] border border-amber-500/20 rounded-2xl px-4 py-3.5 hover:bg-white/[0.04] transition">
+                <span class="text-amber-300 font-bold">Masuk</span> untuk mengajukan VIP
+            </a>
+        <% } else if (!isVipNow || vipKind !== 'permanent') { %>
+            <% if (!pending) { %>
+            <section id="minta" class="rounded-2xl border border-amber-500/25 bg-[#0b0c15] p-5 md:p-6">
+                <h2 class="text-sm md:text-base font-bold text-white mb-1">☕ Ajukan VIP via Donasi</h2>
+                <p class="text-[11px] md:text-xs text-zinc-500 mb-4 leading-relaxed"><%= vipInfo %></p>
+                <form method="POST" action="/vip/request" class="space-y-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">Metode donasi</label>
+                        <select name="via" class="w-full bg-zinc-800/70 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-500/60" required>
+                            <% viaOptions.forEach(v => { %><option value="<%= v %>"><%= v %></option><% }) %>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">Bukti / keterangan</label>
+                        <textarea name="proof" rows="2" maxlength="300" required placeholder="contoh: donasi Rp10.000 a.n. revanwiralaga — https://trakteer.id/xxxx" class="w-full bg-zinc-800/70 border border-white/10 rounded-xl px-4 py-3 text-sm text-white resize-none focus:outline-none focus:ring-2 focus:ring-amber-500/60 placeholder-zinc-600"></textarea>
+                        <p class="text-[10px] text-zinc-600 mt-1">10-300 karakter · semakin jelas, semakin cepat di-approve</p>
+                    </div>
+                    <button class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black text-sm font-black px-5 py-3 rounded-xl transition active:scale-[0.98]">Kirim Permintaan 💎</button>
+                    <p class="text-[10px] text-zinc-600 text-center">VIP diaktifkan manual oleh admin — donasi bentuk dukungan sukarela, bukan pembelian</p>
+                </form>
+            </section>
+            <% } %>
+        <% } %>
+    </main>
+</body>
+</html>

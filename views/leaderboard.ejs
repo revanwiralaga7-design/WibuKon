@@ -42,9 +42,10 @@
                         <% } else { %><span class="w-10 h-10 md:w-11 md:h-11 rounded-full bg-zinc-700 flex items-center justify-center text-white font-black shrink-0"><%= u.username.charAt(0).toUpperCase() %></span><% } %>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2">
-                                <span class="text-sm md:text-base font-bold text-white truncate"><%= u.username %></span>
+                                <span class="text-sm md:text-base font-bold truncate <%= u.isVip ? 'vip-name' : 'text-white' %>"><%= u.username %></span>
                                 <% if (u.role === 'owner') { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 shrink-0">👑 OWNER</span>
                                 <% } else if (u.role === 'admin') { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40 shrink-0">🛡 ADMIN</span><% } %>
+                                <% if (u.isVip) { %><span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">💎 VIP</span><% } %>
                             </div>
                             <% if (typeof authUser !== 'undefined' && authUser && authUser.id === u.id) { %><span class="text-[10px] text-purple-400 font-bold">INI KAMU 😎</span><% } %>
                         </div>

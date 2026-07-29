@@ -12,6 +12,7 @@ const authRoute = require('./routes/auth')
 const apiRoute = require('./routes/api')
 const adminRoute = require('./routes/admin')
 const chatRoute = require('./routes/chat')
+const vipRoute = require('./routes/vip')
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -50,6 +51,7 @@ app.use('/', authRoute)
 app.use('/api', apiRoute)
 app.use('/admin', adminRoute(mobinime))
 app.use('/chat', chatRoute)
+app.use('/vip', vipRoute)
 
 setupRoutes(app, mobinime)
 

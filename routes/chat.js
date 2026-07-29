@@ -7,8 +7,12 @@ const store = require('../lib/store')
 const levels = require('../lib/levels')
 const settingsCache = require('../lib/settingsCache')
 
-const RATE_MS = 3000   // jeda minimal antar pesan per user
-const MAX_BODY = 280   // maks karakter per pesan
+// Limit chat per user — VIP (sementara/permanen) serba dilonggarkan
+const LIMIT_DEFAULT = { rate: 3000, max: 280 }
+const LIMIT_VIP = { rate: 1000, max: 500 }
+function limitsFor(user) {
+    return store.isVip(user) ? LIMIT_VIP : LIMIT_DEFAULT
+}
 
 function rel(ts) {
     const diff = Date.now() - new Date(ts).getTime()
@@ -23,7 +27,7 @@ function rel(ts) {
 }
 
 function withLv(rows, ranks) {
-    return rows.map(m => ({ ...m, rel: rel(m.created_at), lv: levels.stateFor(ranks, m.xp || 0) }))
+    return rows.map(m => ({ ...m, rel: rel(m.created_at), lv: levels.stateFor(ranks, m.xp || 0), isVip: store.isVip(m) }))
 }
 
 // Bentuk JSON aman untuk klien polling (tanpa field sensitif)
@@ -32,24 +36,26 @@ function toJson(m) {
         id: m.id, body: m.body, rel: m.rel,
         userId: m.user_id, username: m.username,
         avatar: m.avatar_url || null, role: m.role || 'user',
+        vip: store.isVip(m),
         lv: { level: m.lv.level, xp: m.lv.xp, name: m.lv.rank.name, icon: m.lv.rank.icon, color: m.lv.rank.color }
     }
 }
 
-function validateBody(raw) {
+function validateBody(raw, max) {
     const body = String(raw || '').replace(/\s+/g, ' ').trim()
     if (body.length < 1) return { err: 'Pesan tidak boleh kosong' }
-    if (body.length > MAX_BODY) return { err: `Pesan maksimal ${MAX_BODY} karakter` }
+    if (body.length > max) return { err: `Pesan maksimal ${max} karakter` }
     return { body }
 }
 
 // Validasi + rate limit + simpan. Dipakai jalur form & jalur JSON.
 async function tryPost(user, rawBody) {
-    const v = validateBody(rawBody)
+    const lim = limitsFor(user)
+    const v = validateBody(rawBody, lim.max)
     if (v.err) return { ok: false, reason: v.err }
     const last = await store.lastChatAt(user.id)
-    if (last && Date.now() - new Date(last).getTime() < RATE_MS) {
-        return { ok: false, reason: 'Santai — jeda 3 detik antar pesan' }
+    if (last && Date.now() - new Date(last).getTime() < lim.rate) {
+        return { ok: false, reason: `Santai — jeda ${lim.rate / 1000} detik antar pesan` }
     }
     const row = await store.addChatMessage(user.id, v.body)
     return { ok: true, id: row.id }
@@ -65,9 +71,11 @@ router.get('/', async (req, res) => {
     }
     try {
         const cfg = await settingsCache.getAll()
+        const lim = limitsFor(req.authUser)
         const messages = withLv(await store.listChat(50), cfg.ranks)
         res.render('chat', {
             active: 'chat', chatEnabled: true, messages,
+            maxBody: lim.max, rateSec: lim.rate / 1000,
             flash: req.query.err ? { err: req.query.err } : (req.query.ok ? { ok: req.query.ok } : null)
         })
     } catch (e) {

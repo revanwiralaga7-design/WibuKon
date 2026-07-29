@@ -149,6 +149,11 @@ module.exports = (mobinime) => {
                 await settingsCache.set('featured', ids)
                 return res.redirect('/admin/content?ok=' + encodeURIComponent(`Daftar unggulan disimpan (${ids.length} anime)`))
             }
+            if (form === 'vipinfo') {
+                const text = String(req.body.text || '').trim().slice(0, 500)
+                await settingsCache.set('vipInfo', text)
+                return res.redirect('/admin/content?ok=Info donasi VIP disimpan')
+            }
             if (form === 'blacklist') {
                 const ids = parseIdList(req.body.ids, 500)
                 await settingsCache.set('blacklist', ids)
@@ -178,6 +183,68 @@ module.exports = (mobinime) => {
             res.redirect('/admin/ranks?ok=Konfigurasi rank & event disimpan')
         } catch (e) {
             res.redirect('/admin/ranks?err=' + encodeURIComponent(String(e.message || e).slice(0, 200)))
+        }
+    })
+
+    /* ---------- VIP: kelola & approve permintaan donasi (admin & owner) ---------- */
+    router.get('/vip', async (req, res) => {
+        try {
+            const [requests, actives] = await Promise.all([store.listVipRequests(), store.listActiveVips(100)])
+            res.render('admin/vip', {
+                section: 'vip', requests, actives, isVip: store.isVip,
+                flash: req.query.ok ? { ok: req.query.ok } : (req.query.err ? { err: req.query.err } : null)
+            })
+        } catch (e) {
+            res.status(500).render('admin/denied', { admin: req.admin, section: 'vip', message: e.message })
+        }
+    })
+
+    // Atur VIP langsung dari halaman detail user: permanent / days30 / revoke
+    router.post('/users/:id/vip', async (req, res) => {
+        const back = `/admin/users/${parseInt(req.params.id) || 0}`
+        try {
+            const user = await store.findUserById(parseInt(req.params.id))
+            if (!user) return res.redirect('/admin/users')
+            const kind = String(req.body.kind || '')
+            if (kind === 'permanent') {
+                await store.setVipPermanent(user.id, true)
+                return res.redirect(`${back}?ok=` + encodeURIComponent(`${user.username} -> VIP PERMANEN 💎`))
+            }
+            if (kind === 'days30') {
+                const until = await store.grantVipDays(user.id, 30)
+                return res.redirect(`${back}?ok=` + encodeURIComponent(`VIP 30 hari ${user.username} aktif sampai ${until.toLocaleDateString('id-ID')}`))
+            }
+            if (kind === 'revoke') {
+                await store.revokeVip(user.id)
+                return res.redirect(`${back}?ok=` + encodeURIComponent(`VIP ${user.username} dicabut`))
+            }
+            res.redirect(`${back}?err=` + encodeURIComponent('Jenis VIP tidak valid'))
+        } catch (e) {
+            res.redirect(`${back}?err=` + encodeURIComponent('Gagal mengatur VIP'))
+        }
+    })
+
+    // Approve permintaan donasi -> VIP 30 hari (menumpuk bila masih aktif)
+    router.post('/vip/:id/approve', async (req, res) => {
+        try {
+            const r = await store.findVipRequest(parseInt(req.params.id))
+            if (!r || r.status !== 'pending') return res.redirect('/admin/vip?err=' + encodeURIComponent('Permintaan tidak ditemukan / sudah diproses'))
+            const until = await store.grantVipDays(r.user_id, 30)
+            await store.setVipRequestStatus(r.id, 'approved', req.admin.id)
+            res.redirect('/admin/vip?ok=' + encodeURIComponent(`Approved — VIP 30 hari aktif sampai ${until.toLocaleDateString('id-ID')}`))
+        } catch (e) {
+            res.redirect('/admin/vip?err=' + encodeURIComponent('Gagal approve'))
+        }
+    })
+
+    router.post('/vip/:id/reject', async (req, res) => {
+        try {
+            const r = await store.findVipRequest(parseInt(req.params.id))
+            if (!r || r.status !== 'pending') return res.redirect('/admin/vip?err=' + encodeURIComponent('Permintaan tidak ditemukan / sudah diproses'))
+            await store.setVipRequestStatus(r.id, 'rejected', req.admin.id)
+            res.redirect('/admin/vip?ok=' + encodeURIComponent('Permintaan ditolak'))
+        } catch (e) {
+            res.redirect('/admin/vip?err=' + encodeURIComponent('Gagal menolak'))
         }
     })
 
