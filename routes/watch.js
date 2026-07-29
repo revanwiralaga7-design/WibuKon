@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const db = require('../lib/db')
 const store = require('../lib/store')
+const levels = require('../lib/levels')
 const settingsCache = require('../lib/settingsCache')
 
 function rel(ts) {
@@ -45,11 +46,12 @@ module.exports = (mobinime) => {
             // stream & detail tidak saling bergantung -> dijalankan paralel.
             // Jika stream gagal, halaman TETAP tampil dengan daftar episode
             // (watch.ejs sudah punya fallback "Stream Error" untuk url null).
-            const [streamUrl, detailData, comments, commentCount] = await Promise.all([
+            const [streamUrl, detailData, comments, commentCount, cfg] = await Promise.all([
                 mobinime.stream(animeId, epsId).catch(() => null),
                 mobinime.detail(animeId),
                 db.enabled() ? store.listComments(animeId, epsId, 50) : [],
-                db.enabled() ? store.countComments(animeId, epsId) : 0
+                db.enabled() ? store.countComments(animeId, epsId) : 0,
+                settingsCache.getAll()
             ])
 
             res.render('watch', {
@@ -57,9 +59,11 @@ module.exports = (mobinime) => {
                 anime: detailData,
                 currentEps: epsId,
                 active: 'home',
-                comments: comments.map(c => ({ ...c, rel: rel(c.created_at) })),
+                // Badge level tiap komentator -> bisa pamer rank di kolom komentar
+                comments: comments.map(c => ({ ...c, rel: rel(c.created_at), lv: levels.stateFor(cfg.ranks, c.xp || 0) })),
                 commentCount,
                 commentsEnabled: db.enabled(),
+                authLv: req.authUser ? levels.stateFor(cfg.ranks, req.authUser.xp || 0) : null,
                 komenOk: req.query.ok || null,
                 komenErr: req.query.err || null
             })
